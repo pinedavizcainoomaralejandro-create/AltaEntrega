@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ensureUserProfile } from "@/lib/supabase/profile";
 import { friendlyAuthError } from "@/lib/errors";
-import { EMAIL_RE, normalizeTelefono, validatePassword } from "@/lib/validation";
+import { EMAIL_RE, normalizeTelefono, safeNextPath, validatePassword } from "@/lib/validation";
 import type { UserRole } from "@/types/database";
 
 export type AuthFormState = { error: string | null } & FormValues;
@@ -100,7 +100,9 @@ async function loginInner(
   // respaldo, usando los datos guardados en el signUp original.
   if (data.user) await ensureUserProfile(supabase, data.user);
 
-  redirect("/");
+  // Vuelve a la página que pidió antes de iniciar sesión (solo rutas internas).
+  // Si su rol no puede verla, el proxy lo lleva a su inicio.
+  redirect(safeNextPath(String(formData.get("redirect") ?? "") || null));
 }
 
 export async function signOutAction() {
@@ -119,7 +121,11 @@ async function requestPasswordResetInner(
   if (!EMAIL_RE.test(email)) return { error: "Escribe un email válido.", message: null };
 
   const supabase = await createClient();
-  const origin = (await headers()).get("origin") ?? process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  // La URL del enlace sale de la configuración, no del header Origin (que
+  // manda el navegador y un atacante puede cambiar). Sin NEXT_PUBLIC_SITE_URL
+  // se usa el origen de la petición, solo aceptable en desarrollo.
+  const origin =
+    process.env.NEXT_PUBLIC_SITE_URL ?? (await headers()).get("origin") ?? "http://localhost:3000";
 
   await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${origin}/auth/callback?next=/reset-password`,

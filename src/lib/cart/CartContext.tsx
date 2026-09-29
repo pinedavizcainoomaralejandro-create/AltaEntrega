@@ -30,11 +30,13 @@ interface CartContextValue extends CartState {
   count: number;
   /** true cuando ya se leyó el carrito guardado en localStorage. */
   hydrated: boolean;
+  /** false para tiendas, repartidores y admin: no pueden hacer pedidos. */
+  canBuy: boolean;
 }
 
 const CartContext = createContext<CartContextValue | null>(null);
 
-export function CartProvider({ children }: { children: React.ReactNode }) {
+export function CartProvider({ children, canBuy = true }: { children: React.ReactNode; canBuy?: boolean }) {
   const [cart, setCart] = useState<CartState>(EMPTY_CART);
   const [hydrated, setHydrated] = useState(false);
 
@@ -123,7 +125,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <CartContext.Provider value={{ ...cart, addItem, removeItem, setQuantity, clear, syncProducts, total, count, hydrated }}>
+    <CartContext.Provider value={{ ...cart, addItem, removeItem, setQuantity, clear, syncProducts, total, count, hydrated, canBuy }}>
       {children}
     </CartContext.Provider>
   );

@@ -17,7 +17,8 @@ const contentSecurityPolicy = [
   `connect-src 'self' ${supabaseUrl} ${supabaseWs}`,
   "frame-ancestors 'none'",
   "base-uri 'self'",
-  "form-action 'self'",
+  // La Página de Pagos de AZUL recibe el formulario de pago.
+  "form-action 'self' https://pruebas.azul.com.do https://pagos.azul.com.do",
   "object-src 'none'",
 ].join("; ");
 
@@ -34,6 +35,12 @@ const nextConfig = {
   // Fija la raíz del proyecto: hay otro package-lock.json en la carpeta de
   // usuario y Next.js lo tomaría como raíz del workspace.
   turbopack: { root: fileURLToPath(new URL(".", import.meta.url)) },
+  // Las fotos de productos y logos se suben con Server Actions, que por defecto
+  // aceptan 1 MB. La app permite imágenes de hasta 5 MB (validateImageFile y
+  // los buckets), más el margen del multipart.
+  experimental: {
+    serverActions: { bodySizeLimit: "6mb" },
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

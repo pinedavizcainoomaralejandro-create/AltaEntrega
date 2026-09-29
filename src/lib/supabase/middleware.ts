@@ -9,6 +9,8 @@ function isPublicPath(pathname: string) {
     PUBLIC_PATHS.includes(pathname) ||
     pathname.startsWith("/tiendas/") ||
     pathname.startsWith("/auth/") ||
+    // AZUL devuelve al cliente aquí; la ruta verifica la firma por su cuenta.
+    pathname.startsWith("/api/pagos/") ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon")
   );

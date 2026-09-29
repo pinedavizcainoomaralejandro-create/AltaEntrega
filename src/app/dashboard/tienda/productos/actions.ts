@@ -33,6 +33,12 @@ function parseProductFields(
   if (!Number.isFinite(precio) || precio < 0) return { ok: false, error: "El precio no es válido." };
   if (!Number.isFinite(stock) || stock < 0) return { ok: false, error: "El stock no es válido." };
   if (!Number.isInteger(stock)) return { ok: false, error: "El stock debe ser un número entero." };
+  // Mismos límites que las constraints de products (migración 20260930000001).
+  if (precio > 1_000_000) return { ok: false, error: "El precio no puede pasar de RD$1,000,000." };
+  if (stock > 100_000) return { ok: false, error: "El stock no puede pasar de 100,000 unidades." };
+  if (nombre.length > 120) return { ok: false, error: "El nombre es demasiado largo (máximo 120 caracteres)." };
+  if (descripcion.length > 1000) return { ok: false, error: "La descripción es demasiado larga (máximo 1000 caracteres)." };
+  if (talla.length > 40 || color.length > 40) return { ok: false, error: "Talla y color admiten hasta 40 caracteres." };
 
   return {
     ok: true,

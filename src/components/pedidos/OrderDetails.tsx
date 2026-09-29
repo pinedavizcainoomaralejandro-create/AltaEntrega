@@ -45,7 +45,7 @@ export default function OrderDetails({
 
       const productIds = (rows ?? []).map((r) => r.product_id);
       const { data: products } = productIds.length
-        ? await supabase.from("products").select("id, nombre").in("id", productIds)
+        ? await supabase.from("catalog_products").select("id, nombre").in("id", productIds)
         : { data: [] as { id: string; nombre: string }[] };
       const nameById = new Map((products ?? []).map((p) => [p.id, p.nombre] as const));
 
@@ -110,7 +110,7 @@ export default function OrderDetails({
                   </a>
                 </>
               ) : (
-                " · sin teléfono registrado"
+                " · teléfono no disponible"
               )}
             </p>
           )}

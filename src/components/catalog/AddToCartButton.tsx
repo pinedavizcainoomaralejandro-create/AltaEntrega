@@ -14,8 +14,14 @@ export default function AddToCartButton({
   product: Omit<CartItem, "cantidad">;
   disabled?: boolean;
 }) {
-  const { addItem } = useCart();
+  const { addItem, canBuy } = useCart();
   const [added, setAdded] = useState(false);
+
+  if (!canBuy) {
+    return (
+      <p className="text-center text-xs text-neutral-500">Solo las cuentas de cliente pueden comprar.</p>
+    );
+  }
 
   if (disabled) {
     return (

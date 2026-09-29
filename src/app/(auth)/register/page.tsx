@@ -5,6 +5,7 @@ import { useActionState } from "react";
 import Link from "next/link";
 import { signUpAction, type AuthFormState } from "../actions";
 import HomeLink from "@/components/HomeLink";
+import PasswordInput from "@/components/PasswordInput";
 
 const initialState: AuthFormState = { error: null };
 
@@ -90,10 +91,9 @@ export default function RegisterPage() {
 
         <div>
           <label htmlFor="password" className="mb-1 block text-sm font-medium">Contraseña</label>
-          <input
+          <PasswordInput
             id="password"
             name="password"
-            type="password"
             required
             minLength={8}
             maxLength={72}
@@ -105,10 +105,9 @@ export default function RegisterPage() {
 
         <div>
           <label htmlFor="confirmPassword" className="mb-1 block text-sm font-medium">Confirmar contraseña</label>
-          <input
+          <PasswordInput
             id="confirmPassword"
             name="confirmPassword"
-            type="password"
             required
             minLength={8}
             maxLength={72}

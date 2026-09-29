@@ -10,8 +10,7 @@ type AssignedOrder = {
   id: string;
   store_id: string;
   direccion_entrega: string;
-  total: number;
-  metodo_pago: string;
+  delivery_fee: number;
   estado: OrderStatus;
   created_at: string;
   storeNombre: string;
@@ -24,6 +23,7 @@ const NEXT_LABEL: Partial<Record<OrderStatus, string>> = {
 };
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
+  esperando_pago: "Esperando pago",
   pendiente: "Pendiente",
   confirmado: "Confirmado",
   preparando: "Preparando",
@@ -41,7 +41,7 @@ export default function MyDeliveries({ courierId }: { courierId: string }) {
   const refresh = useCallback(async () => {
     const { data: rows } = await supabase
       .from("orders")
-      .select("id, store_id, direccion_entrega, total, metodo_pago, estado, created_at")
+      .select("id, store_id, direccion_entrega, delivery_fee, estado, created_at")
       .eq("courier_id", courierId)
       .neq("estado", "cancelado")
       .order("created_at", { ascending: false });
@@ -110,7 +110,7 @@ export default function MyDeliveries({ courierId }: { courierId: string }) {
                 <p className="font-medium">{o.storeNombre}</p>
                 <p className="truncate text-sm text-neutral-500">{o.direccion_entrega}</p>
                 <p className="text-xs text-neutral-400">
-                  RD${o.total.toFixed(2)} · {o.metodo_pago} · {STATUS_LABEL[o.estado]}
+                  Ganas RD${o.delivery_fee.toFixed(2)} · {STATUS_LABEL[o.estado]}
                 </p>
               </div>
               {nextLabel ? (

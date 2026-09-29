@@ -8,8 +8,7 @@ type PoolOrder = {
   id: string;
   store_id: string;
   direccion_entrega: string;
-  total: number;
-  metodo_pago: string;
+  delivery_fee: number;
   created_at: string;
   storeNombre: string;
   storeDireccion: string;
@@ -24,7 +23,7 @@ export default function OrdersPool() {
   const refresh = useCallback(async () => {
     const { data: rows } = await supabase
       .from("orders")
-      .select("id, store_id, direccion_entrega, total, metodo_pago, created_at")
+      .select("id, store_id, direccion_entrega, delivery_fee, created_at")
       // La bolsa muestra pedidos ya confirmados por la tienda.
       .in("estado", ["confirmado", "preparando"])
       .is("courier_id", null)
@@ -106,7 +105,7 @@ export default function OrdersPool() {
               <p className="truncate text-sm text-neutral-500">Recoger: {o.storeDireccion}</p>
               <p className="truncate text-sm text-neutral-500">Entregar: {o.direccion_entrega}</p>
               <p className="text-xs text-neutral-400">
-                RD${o.total.toFixed(2)} · {o.metodo_pago}
+                Ganas RD${o.delivery_fee.toFixed(2)} · ya pagado por el cliente
               </p>
             </div>
             <button

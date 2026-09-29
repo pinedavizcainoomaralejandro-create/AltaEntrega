@@ -101,7 +101,7 @@ export default function ProductManager({ products }: { products: ProductRow[] })
                   {[p.talla, p.color].filter(Boolean).join(" · ") || "—"}
                 </p>
                 <p className="text-sm">
-                  RD${p.precio.toFixed(2)} · stock: {p.stock}
+                  Recibes RD${p.precio.toFixed(2)} · stock: {p.stock}
                 </p>
                 {!p.activo && (
                   <p className="text-xs text-neutral-500">

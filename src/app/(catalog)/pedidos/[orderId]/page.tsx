@@ -2,9 +2,26 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import OrderTimeline from "@/components/pedidos/OrderTimeline";
+import PaymentResultBanner from "@/components/pagos/PaymentResultBanner";
 
-export default async function PedidoDetallePage({ params }: { params: Promise<{ orderId: string }> }) {
+const ESTADO_PAGO_LABEL: Record<string, string> = {
+  pendiente: "Pendiente de pago",
+  pagado: "Pagado",
+  rechazado: "Pago rechazado",
+  expirado: "Pago no completado",
+  reembolso_pendiente: "Reembolso en proceso",
+  reembolsado: "Reembolsado",
+};
+
+export default async function PedidoDetallePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ orderId: string }>;
+  searchParams: Promise<{ pago?: string }>;
+}) {
   const { orderId } = await params;
+  const { pago } = await searchParams;
   const supabase = await createClient();
   const {
     data: { user },
@@ -13,7 +30,7 @@ export default async function PedidoDetallePage({ params }: { params: Promise<{ 
 
   const { data: order } = await supabase
     .from("orders")
-    .select("id, store_id, direccion_entrega, total, metodo_pago, created_at")
+    .select("id, numero, store_id, direccion_entrega, subtotal, delivery_fee, total, estado, estado_pago, created_at")
     .eq("id", orderId)
     .eq("cliente_id", user.id)
     .maybeSingle();
@@ -29,7 +46,7 @@ export default async function PedidoDetallePage({ params }: { params: Promise<{ 
 
   const productIds = (items ?? []).map((i) => i.product_id);
   const { data: products } = productIds.length
-    ? await supabase.from("products").select("id, nombre").in("id", productIds)
+    ? await supabase.from("catalog_products").select("id, nombre").in("id", productIds)
     : { data: [] as { id: string; nombre: string }[] };
   const productNameById = new Map((products ?? []).map((p) => [p.id, p.nombre] as const));
 
@@ -45,7 +62,10 @@ export default async function PedidoDetallePage({ params }: { params: Promise<{ 
         ← Mis pedidos
       </Link>
 
+      <PaymentResultBanner pago={pago} />
+
       <h1 className="mb-1 text-2xl font-semibold">{store?.nombre ?? "Tienda"}</h1>
+      <p className="text-xs text-neutral-400">Pedido #{order.numero}</p>
       <p className="mb-6 text-sm text-neutral-500">{order.direccion_entrega}</p>
 
       <div className="mb-6 rounded-lg border border-neutral-200 p-4">
@@ -60,11 +80,23 @@ export default async function PedidoDetallePage({ params }: { params: Promise<{ 
             </li>
           ))}
         </ul>
-        <div className="mt-2 flex justify-between border-t border-neutral-100 pt-2 text-sm font-medium">
+        <div className="mt-2 flex justify-between border-t border-neutral-100 pt-2 text-sm">
+          <span>Delivery</span>
+          <span>RD${order.delivery_fee.toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between text-sm font-medium">
           <span>Total</span>
           <span>RD${order.total.toFixed(2)}</span>
         </div>
-        <p className="mt-1 text-xs text-neutral-400">Pago: {order.metodo_pago}</p>
+        <p className="mt-1 text-xs text-neutral-400">{ESTADO_PAGO_LABEL[order.estado_pago] ?? order.estado_pago}</p>
+        {order.estado === "esperando_pago" && (
+          <Link
+            href={`/pagar/${order.id}`}
+            className="mt-3 inline-block rounded-md bg-neutral-900 px-4 py-2 text-sm text-white"
+          >
+            Completar el pago
+          </Link>
+        )}
       </div>
 
       <h2 className="mb-3 text-lg font-medium">Seguimiento</h2>

@@ -22,3 +22,15 @@ export type OrderStatusHistoryRow = Tables<"order_status_history">;
 
 /** Fila de get_order_contacts(): contacto del cliente y de la tienda de un pedido. */
 export type OrderContacts = Database["public"]["Functions"]["get_order_contacts"]["Returns"][number];
+
+type CatalogProductView = Database["public"]["Views"]["catalog_products"]["Row"];
+type NullableCatalogColumns = "descripcion" | "talla" | "color" | "foto";
+
+/**
+ * Fila de la vista catalog_products. Postgres no conserva el NOT NULL en las
+ * columnas de una vista, así que el tipo generado las marca todas como
+ * opcionales; aquí se restauran las que en products son obligatorias.
+ */
+export type CatalogProduct = {
+  [K in Exclude<keyof CatalogProductView, NullableCatalogColumns>]: NonNullable<CatalogProductView[K]>;
+} & Pick<CatalogProductView, NullableCatalogColumns>;

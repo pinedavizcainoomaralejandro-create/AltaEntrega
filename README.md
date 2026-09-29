@@ -14,7 +14,7 @@ Requiere Node.js 20.9 o superior.
    ```bash
    cp .env.local.example .env.local
    ```
-   La app solo usa `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY`. No guardes la `service_role` key en `.env.local`: el código no la necesita y da acceso total a la base.
+   Variables: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SITE_URL` (la URL pública de la app, para enlaces de correo y el retorno del pago; en producción pon tu dominio), `SUPABASE_SERVICE_ROLE_KEY` (solo servidor: registra el resultado de los pagos; nunca le pongas el prefijo `NEXT_PUBLIC_`) y las de AZUL (ver *Pagos*). En Supabase, **Authentication → URL Configuration**, deja en *Redirect URLs* solo tu dominio y `http://localhost:3000/**`.
 3. Aplica las migraciones de `supabase/migrations/` con la [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started), desde la carpeta del proyecto:
    ```bash
    supabase login
@@ -40,6 +40,14 @@ Requiere Node.js 20.9 o superior.
 | `npm run gen:types` | Genera `src/types/supabase.ts` desde el proyecto enlazado |
 
 El workflow `.github/workflows/ci.yml` corre lint, typecheck, pruebas, build y las pruebas de base de datos en cada push y pull request.
+
+## Pagos (AZUL)
+
+- El cliente paga con tarjeta en la Página de Pagos de AZUL al terminar el carrito. El pedido se crea `esperando_pago` y reserva el stock; pasa a `pendiente` (y le llega a la tienda) cuando AZUL confirma el pago. Si el pago se rechaza, se cancela o pasan 30 minutos, el pedido se cancela y el stock vuelve.
+- **Precios**: `products.precio` es lo que recibe la tienda. El cliente ve ese precio más la comisión de la plataforma (5% por defecto) a través de la vista `catalog_products`; la comisión solo existe en la base (`platform_settings`, solo admin) y el cliente no puede leer el precio base. El delivery (tarifa fija) aparece como línea aparte.
+- **Liquidación**: cada pedido guarda en `order_settlements` lo que se le debe a la tienda, al repartidor y la comisión. El admin ve en `/admin` cuánto debe a cada uno por pedidos entregados, transfiere y marca como pagado. Los pedidos pagados que se cancelan quedan como *reembolso pendiente* para hacerlo desde el portal de AZUL.
+- **Modos** (`AZUL_MODE`): `simulado` (desarrollo, sin cobrar; deshabilitado en producción), `pruebas` (ambiente de pruebas de AZUL) y `produccion`. Para `pruebas`/`produccion` configura `AZUL_MERCHANT_ID`, `AZUL_MERCHANT_NAME`, `AZUL_MERCHANT_TYPE` y `AZUL_AUTH_KEY`, que entrega AZUL al afiliar el comercio.
+- **Antes de producción**: `src/lib/payments/azul.ts` marca con `VERIFICAR` los detalles (nombres de campos, orden y codificación del AuthHash, URLs) que hay que confirmar contra la guía vigente de AZUL y probar con un pago real en el ambiente de pruebas.
 
 ## Roles y flujo
 

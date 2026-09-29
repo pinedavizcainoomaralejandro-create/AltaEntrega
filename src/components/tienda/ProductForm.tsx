@@ -45,7 +45,7 @@ export default function ProductForm({
       <div>
         <label className="mb-1 block text-sm font-medium">Nombre</label>
         <input
-          name="nombre"
+          maxLength={120} name="nombre"
           required
           defaultValue={state.values?.nombre ?? product?.nombre}
           className="w-full rounded-md border border-neutral-300 px-3 py-2"
@@ -55,7 +55,7 @@ export default function ProductForm({
       <div>
         <label className="mb-1 block text-sm font-medium">Descripción</label>
         <textarea
-          name="descripcion"
+          maxLength={1000} name="descripcion"
           defaultValue={state.values?.descripcion ?? product?.descripcion ?? ""}
           rows={2}
           className="w-full rounded-md border border-neutral-300 px-3 py-2"
@@ -64,9 +64,9 @@ export default function ProductForm({
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="mb-1 block text-sm font-medium">Precio</label>
+          <label className="mb-1 block text-sm font-medium">Tu precio (RD$ que recibes por unidad)</label>
           <input
-            name="precio"
+            max="1000000" name="precio"
             type="number"
             step="0.01"
             min="0"
@@ -78,7 +78,7 @@ export default function ProductForm({
         <div>
           <label className="mb-1 block text-sm font-medium">Stock</label>
           <input
-            name="stock"
+            max="100000" name="stock"
             type="number"
             min="0"
             step="1"
@@ -93,7 +93,7 @@ export default function ProductForm({
         <div>
           <label className="mb-1 block text-sm font-medium">Talla</label>
           <input
-            name="talla"
+            maxLength={40} name="talla"
             defaultValue={state.values?.talla ?? product?.talla ?? ""}
             className="w-full rounded-md border border-neutral-300 px-3 py-2"
           />
@@ -101,7 +101,7 @@ export default function ProductForm({
         <div>
           <label className="mb-1 block text-sm font-medium">Color</label>
           <input
-            name="color"
+            maxLength={40} name="color"
             defaultValue={state.values?.color ?? product?.color ?? ""}
             className="w-full rounded-md border border-neutral-300 px-3 py-2"
           />

@@ -3,9 +3,11 @@ import { createClient } from "@/lib/supabase/server";
 import { signOutAction } from "@/app/(auth)/actions";
 import { setStoreStatusAction, setCourierStatusAction, cancelOrderAction } from "./actions";
 import CancelOrderButton from "@/components/admin/CancelOrderButton";
+import PaymentsAdmin from "@/components/admin/PaymentsAdmin";
 import ApprovalActions from "@/components/admin/ApprovalActions";
 import { ORDER_STATUS_LABEL } from "@/lib/orderStatus";
 import HomeLink from "@/components/HomeLink";
+import { formatFecha } from "@/lib/format";
 
 const ORDERS_PAGE_SIZE = 50;
 
@@ -19,9 +21,14 @@ function startOfTodayISO() {
   return new Date(`${today}T00:00:00-04:00`).toISOString();
 }
 
-export default async function AdminPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; config?: string }>;
+}) {
+  const { page: pageParam, config } = await searchParams;
   const supabase = await createClient();
-  const page = Math.max(1, Math.floor(Number((await searchParams).page)) || 1);
+  const page = Math.max(1, Math.floor(Number(pageParam)) || 1);
   const from = (page - 1) * ORDERS_PAGE_SIZE;
 
   const [
@@ -51,7 +58,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       .order("created_at", { ascending: true }),
     supabase
       .from("orders")
-      .select("id, store_id, cliente_id, courier_id, estado, total, metodo_pago, created_at", { count: "exact" })
+      .select("id, numero, store_id, cliente_id, courier_id, estado, estado_pago, total, created_at", { count: "exact" })
       .order("created_at", { ascending: false })
       .range(from, from + ORDERS_PAGE_SIZE - 1),
   ]);
@@ -112,6 +119,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         <MetricCard label="Pedidos hoy" value={pedidosHoy ?? 0} />
         <MetricCard label="Repartidores disponibles" value={repartidoresDisponibles ?? 0} />
       </div>
+
+      <PaymentsAdmin configResult={config} />
 
       <section className="mb-10">
         <h2 className="mb-3 text-lg font-medium">Tiendas pendientes de aprobación</h2>
@@ -206,7 +215,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                 {orderRows.map((o) => (
                   <tr key={o.id} className="border-t border-neutral-100">
                     <td className="px-3 py-2 text-neutral-500">
-                      {new Date(o.created_at).toLocaleString("es-DO")}
+                      {formatFecha(o.created_at)}
                     </td>
                     <td className="px-3 py-2">{storeNameById.get(o.store_id) ?? "—"}</td>
                     <td className="px-3 py-2">{userNameById.get(o.cliente_id) ?? "—"}</td>
@@ -214,7 +223,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                       {o.courier_id ? courierName(o.courier_id) : "Sin asignar"}
                     </td>
                     <td className="px-3 py-2">{ORDER_STATUS_LABEL[o.estado]}</td>
-                    <td className="px-3 py-2 capitalize">{o.metodo_pago}</td>
+                    <td className="px-3 py-2">{o.estado_pago.replace("_", " ")}</td>
                     <td className="px-3 py-2 text-right">RD${o.total.toFixed(2)}</td>
                     <td className="px-3 py-2 text-right">
                       {o.estado !== "entregado" && o.estado !== "cancelado" && (

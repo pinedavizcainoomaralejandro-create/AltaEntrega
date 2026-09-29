@@ -18,6 +18,8 @@ export function friendlyDbError(error: DbError, fallback = "Ocurrió un error. I
       return error.message;
     case "23505":
       return "Ya existe un registro con esos datos.";
+    case "22003":
+      return "Algún número es demasiado grande.";
     case "23514":
     case "22P02":
       return "Alguno de los datos no es válido. Revísalos e inténtalo de nuevo.";

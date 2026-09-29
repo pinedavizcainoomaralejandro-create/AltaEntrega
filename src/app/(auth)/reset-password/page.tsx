@@ -4,6 +4,7 @@ import { useFormStatus } from "react-dom";
 import { useActionState } from "react";
 import { updatePasswordAction, type ResetPasswordState } from "../actions";
 import HomeLink from "@/components/HomeLink";
+import PasswordInput from "@/components/PasswordInput";
 
 const initialState: ResetPasswordState = { error: null };
 
@@ -36,10 +37,9 @@ export default function ResetPasswordPage() {
           <label htmlFor="password" className="mb-1 block text-sm font-medium">
             Nueva contraseña
           </label>
-          <input
+          <PasswordInput
             id="password"
             name="password"
-            type="password"
             required
             minLength={8}
             className="w-full rounded-md border border-neutral-300 px-3 py-2"
@@ -50,10 +50,9 @@ export default function ResetPasswordPage() {
           <label htmlFor="confirmPassword" className="mb-1 block text-sm font-medium">
             Confirmar contraseña
           </label>
-          <input
+          <PasswordInput
             id="confirmPassword"
             name="confirmPassword"
-            type="password"
             required
             minLength={8}
             className="w-full rounded-md border border-neutral-300 px-3 py-2"

@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { ORDER_STATUS_LABEL } from "@/lib/orderStatus";
 import { friendlyDbError } from "@/lib/errors";
 import type { OrderStatusHistoryRow } from "@/types/database";
+import { formatFecha } from "@/lib/format";
 
 export default function OrderTimeline({
   orderId,
@@ -50,7 +51,7 @@ export default function OrderTimeline({
   const current = history[history.length - 1]?.estado;
 
   async function handleCancel() {
-    if (!confirm("¿Cancelar tu pedido?")) return;
+    if (!confirm("¿Cancelar tu pedido? Si ya pagaste, te devolveremos el dinero.")) return;
     setError(null);
     setCancelling(true);
     const { error: rpcError } = await supabase.rpc("cancel_order", { p_order_id: orderId });
@@ -67,7 +68,7 @@ export default function OrderTimeline({
         </p>
       )}
 
-      {current === "pendiente" && (
+      {(current === "esperando_pago" || current === "pendiente") && (
         <div className="mb-4">
           <button
             type="button"
@@ -92,7 +93,7 @@ export default function OrderTimeline({
               <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-neutral-900" />
               <p className="font-medium">{ORDER_STATUS_LABEL[h.estado]}</p>
               <p className="text-xs text-neutral-400">
-                {new Date(h.fecha).toLocaleString("es-DO")}
+                {formatFecha(h.fecha)}
               </p>
             </li>
           ))}

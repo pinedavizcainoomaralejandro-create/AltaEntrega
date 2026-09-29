@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { escapeLike } from "@/lib/validation";
+import type { CatalogProduct } from "@/types/database";
 import AddToCartButton from "@/components/catalog/AddToCartButton";
 
 export default async function StorePage({
@@ -22,7 +23,7 @@ export default async function StorePage({
 
   const q = ((await searchParams).q ?? "").trim();
   let productsQuery = supabase
-    .from("products")
+    .from("catalog_products")
     .select("id, nombre, descripcion, precio, talla, color, stock, foto, agotado")
     .eq("store_id", store.id)
     .eq("activo", true)
@@ -30,7 +31,8 @@ export default async function StorePage({
 
   if (q) productsQuery = productsQuery.ilike("nombre", `%${escapeLike(q)}%`);
 
-  const { data: products } = await productsQuery;
+  const { data } = await productsQuery;
+  const products = data as CatalogProduct[] | null;
 
   return (
     <div>

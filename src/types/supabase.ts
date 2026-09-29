@@ -92,7 +92,62 @@ export type Database = {
             foreignKeyName: "order_items_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "catalog_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_settlements: {
+        Row: {
+          comision: number
+          courier_pagado_at: string | null
+          created_at: string
+          monto_delivery: number
+          monto_tienda: number
+          order_id: string
+          store_id: string
+          tienda_pagado_at: string | null
+        }
+        Insert: {
+          comision: number
+          courier_pagado_at?: string | null
+          created_at?: string
+          monto_delivery: number
+          monto_tienda: number
+          order_id: string
+          store_id: string
+          tienda_pagado_at?: string | null
+        }
+        Update: {
+          comision?: number
+          courier_pagado_at?: string | null
+          created_at?: string
+          monto_delivery?: number
+          monto_tienda?: number
+          order_id?: string
+          store_id?: string
+          tienda_pagado_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_settlements_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_settlements_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
             referencedColumns: ["id"]
           },
         ]
@@ -131,11 +186,18 @@ export type Database = {
           cliente_id: string
           courier_id: string | null
           created_at: string
+          delivery_fee: number
           direccion_entrega: string
           estado: Database["public"]["Enums"]["order_status"]
+          estado_pago: string
           id: string
           metodo_pago: Database["public"]["Enums"]["payment_method"]
+          numero: number
+          pagado_at: string | null
+          pago_autorizacion: string | null
+          pago_referencia: string | null
           store_id: string
+          subtotal: number
           total: number
           updated_at: string
         }
@@ -143,11 +205,18 @@ export type Database = {
           cliente_id: string
           courier_id?: string | null
           created_at?: string
+          delivery_fee?: number
           direccion_entrega: string
           estado?: Database["public"]["Enums"]["order_status"]
+          estado_pago?: string
           id?: string
           metodo_pago: Database["public"]["Enums"]["payment_method"]
+          numero?: never
+          pagado_at?: string | null
+          pago_autorizacion?: string | null
+          pago_referencia?: string | null
           store_id: string
+          subtotal: number
           total: number
           updated_at?: string
         }
@@ -155,11 +224,18 @@ export type Database = {
           cliente_id?: string
           courier_id?: string | null
           created_at?: string
+          delivery_fee?: number
           direccion_entrega?: string
           estado?: Database["public"]["Enums"]["order_status"]
+          estado_pago?: string
           id?: string
           metodo_pago?: Database["public"]["Enums"]["payment_method"]
+          numero?: never
+          pagado_at?: string | null
+          pago_autorizacion?: string | null
+          pago_referencia?: string | null
           store_id?: string
+          subtotal?: number
           total?: number
           updated_at?: string
         }
@@ -186,6 +262,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      platform_settings: {
+        Row: {
+          commission_rate: number
+          delivery_fee: number
+          id: boolean
+          updated_at: string
+        }
+        Insert: {
+          commission_rate?: number
+          delivery_fee?: number
+          id?: boolean
+          updated_at?: string
+        }
+        Update: {
+          commission_rate?: number
+          delivery_fee?: number
+          id?: boolean
+          updated_at?: string
+        }
+        Relationships: []
       }
       products: {
         Row: {
@@ -319,7 +416,30 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      catalog_products: {
+        Row: {
+          activo: boolean | null
+          agotado: boolean | null
+          color: string | null
+          descripcion: string | null
+          foto: string | null
+          id: string | null
+          nombre: string | null
+          precio: number | null
+          stock: number | null
+          store_id: string | null
+          talla: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       advance_order_status: {
@@ -328,19 +448,29 @@ export type Database = {
       }
       cancel_order: { Args: { p_order_id: string }; Returns: undefined }
       checkout: {
-        Args: {
-          p_direccion_entrega: string
-          p_items: Json
-          p_metodo_pago: Database["public"]["Enums"]["payment_method"]
-          p_store_id: string
-        }
+        Args: { p_direccion_entrega: string; p_items: Json; p_store_id: string }
         Returns: string
       }
       claim_order: { Args: { p_order_id: string }; Returns: undefined }
+      confirm_payment: {
+        Args: {
+          p_autorizacion: string
+          p_monto_centavos: number
+          p_order_id: string
+          p_referencia: string
+        }
+        Returns: string
+      }
       current_user_role: {
         Args: never
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      expire_unpaid_orders: { Args: never; Returns: undefined }
+      fail_payment: {
+        Args: { p_estado_pago: string; p_order_id: string }
+        Returns: undefined
+      }
+      get_delivery_fee: { Args: never; Returns: number }
       get_order_contacts: {
         Args: { p_order_id: string }
         Returns: {
@@ -351,6 +481,8 @@ export type Database = {
           tienda_telefono: string
         }[]
       }
+      mark_refunded: { Args: { p_order_id: string }; Returns: undefined }
+      restore_order_stock: { Args: { p_order_id: string }; Returns: undefined }
       store_advance_order: {
         Args: { p_order_id: string }
         Returns: Database["public"]["Enums"]["order_status"]
@@ -359,6 +491,7 @@ export type Database = {
     Enums: {
       approval_status: "pendiente" | "aprobado" | "rechazado"
       order_status:
+        | "esperando_pago"
         | "pendiente"
         | "confirmado"
         | "preparando"
@@ -496,6 +629,7 @@ export const Constants = {
     Enums: {
       approval_status: ["pendiente", "aprobado", "rechazado"],
       order_status: [
+        "esperando_pago",
         "pendiente",
         "confirmado",
         "preparando",

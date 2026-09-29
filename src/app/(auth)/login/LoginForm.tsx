@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { loginAction, type AuthFormState } from "../actions";
 import HomeLink from "@/components/HomeLink";
+import PasswordInput from "@/components/PasswordInput";
 
 const initialState: AuthFormState = { error: null };
 
@@ -27,6 +28,7 @@ export default function LoginForm() {
   const params = useSearchParams();
   const checkEmail = params.get("check_email") === "1";
   const linkError = params.get("link_error") === "1";
+  const redirectTo = params.get("redirect") ?? "";
 
   return (
     <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 px-4">
@@ -47,6 +49,7 @@ export default function LoginForm() {
       )}
 
       <form action={formAction} className="flex flex-col gap-4">
+        <input type="hidden" name="redirect" value={redirectTo} />
         <div>
           <label htmlFor="email" className="mb-1 block text-sm font-medium">Email</label>
           <input id="email" name="email" defaultValue={state.values?.email} type="email" required className="w-full rounded-md border border-neutral-300 px-3 py-2" />
@@ -59,7 +62,7 @@ export default function LoginForm() {
               ¿Olvidaste tu contraseña?
             </Link>
           </div>
-          <input id="password" name="password" type="password" required className="w-full rounded-md border border-neutral-300 px-3 py-2" />
+          <PasswordInput id="password" name="password" required className="w-full rounded-md border border-neutral-300 px-3 py-2" />
         </div>
 
         {state?.error && <p className="text-sm text-red-600">{state.error}</p>}

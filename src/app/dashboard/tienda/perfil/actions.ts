@@ -12,13 +12,10 @@ async function updateStoreProfileInner(
   _prevState: StoreProfileFormState,
   formData: FormData
 ): Promise<StoreProfileFormState> {
-  const nombre = String(formData.get("nombre") ?? "").trim();
-  const direccion = String(formData.get("direccion") ?? "").trim();
   const categoria = String(formData.get("categoria") ?? "").trim();
 
-  if (!nombre || !direccion || !categoria) {
-    return { error: "Completa nombre, dirección y categoría." };
-  }
+  if (!categoria) return { error: "Completa la categoría." };
+  if (categoria.length > 60) return { error: "La categoría es demasiado larga (máximo 60 caracteres)." };
 
   const { supabase, store } = await requireOwnStore();
 
@@ -37,7 +34,8 @@ async function updateStoreProfileInner(
 
   const { error } = await supabase
     .from("stores")
-    .update({ nombre, direccion, categoria, logo })
+    // Nombre y dirección los verificó el admin: la tienda solo edita categoría y logo.
+    .update({ categoria, logo })
     .eq("id", store.id);
 
   if (error) return { error: friendlyDbError(error, "No se pudieron guardar los cambios. Inténtalo de nuevo.") };
@@ -51,5 +49,5 @@ export async function updateStoreProfileAction(
   prevState: StoreProfileFormState,
   formData: FormData
 ): Promise<StoreProfileFormState> {
-  return attachValues(await updateStoreProfileInner(prevState, formData), formData, ["nombre", "direccion", "categoria"]);
+  return attachValues(await updateStoreProfileInner(prevState, formData), formData, ["categoria"]);
 }

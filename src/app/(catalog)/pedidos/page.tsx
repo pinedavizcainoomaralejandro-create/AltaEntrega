@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ORDER_STATUS_LABEL } from "@/lib/orderStatus";
+import { formatFecha } from "@/lib/format";
 
 export default async function PedidosPage() {
   const supabase = await createClient();
@@ -44,7 +45,7 @@ export default async function PedidosPage() {
           >
             <div className="min-w-0">
               <p className="truncate font-medium">{nameById.get(o.store_id) ?? "Tienda"}</p>
-              <p className="text-xs text-neutral-400">{new Date(o.created_at).toLocaleString("es-DO")}</p>
+              <p className="text-xs text-neutral-400">{formatFecha(o.created_at)}</p>
             </div>
             <div className="shrink-0 text-right">
               <p className="text-sm font-medium">RD${o.total.toFixed(2)}</p>

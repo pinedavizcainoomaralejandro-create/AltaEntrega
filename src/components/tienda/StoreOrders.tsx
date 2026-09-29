@@ -6,12 +6,13 @@ import { friendlyDbError } from "@/lib/errors";
 import { ORDER_STATUS_LABEL } from "@/lib/orderStatus";
 import type { OrderStatus } from "@/types/database";
 import OrderDetails from "@/components/pedidos/OrderDetails";
+import { formatFecha } from "@/lib/format";
 
 type StoreOrder = {
+  numero: number;
+  montoTienda: number | null;
   id: string;
   direccion_entrega: string;
-  total: number;
-  metodo_pago: string;
   estado: OrderStatus;
   courier_id: string | null;
   created_at: string;
@@ -35,8 +36,10 @@ export default function StoreOrders({ storeId }: { storeId: string }) {
   const refresh = useCallback(async () => {
     const { data, error: queryError } = await supabase
       .from("orders")
-      .select("id, direccion_entrega, total, metodo_pago, estado, courier_id, created_at")
+      .select("id, numero, direccion_entrega, estado, courier_id, created_at")
       .eq("store_id", storeId)
+      // Un pedido sin pagar todavía no es un pedido para la tienda.
+      .neq("estado", "esperando_pago")
       .order("created_at", { ascending: false })
       .limit(100);
 
@@ -44,7 +47,13 @@ export default function StoreOrders({ storeId }: { storeId: string }) {
       setError(friendlyDbError(queryError, "No se pudieron cargar los pedidos."));
       return;
     }
-    setOrders(data ?? []);
+    const rows = data ?? [];
+    const { data: settlements } = rows.length
+      ? await supabase.from("order_settlements").select("order_id, monto_tienda").in("order_id", rows.map((r) => r.id))
+      : { data: [] as { order_id: string; monto_tienda: number }[] };
+    const montoById = new Map((settlements ?? []).map((s) => [s.order_id, s.monto_tienda] as const));
+
+    setOrders(rows.map((r) => ({ ...r, montoTienda: montoById.get(r.id) ?? null })));
   }, [supabase, storeId]);
 
   useEffect(() => {
@@ -87,10 +96,13 @@ export default function StoreOrders({ storeId }: { storeId: string }) {
       <div key={o.id} className="flex flex-col gap-2 rounded-lg border border-neutral-200 p-3">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0">
-            <p className="font-medium">{ORDER_STATUS_LABEL[o.estado]}</p>
+            <p className="font-medium">
+              #{o.numero} · {ORDER_STATUS_LABEL[o.estado]}
+            </p>
             <p className="truncate text-sm text-neutral-500">Entregar en: {o.direccion_entrega}</p>
             <p className="text-xs text-neutral-400">
-              {new Date(o.created_at).toLocaleString("es-DO")} · RD${o.total.toFixed(2)} · {o.metodo_pago} ·{" "}
+              {formatFecha(o.created_at)} ·{" "}
+              {o.montoTienda !== null ? `recibes RD$${o.montoTienda.toFixed(2)}` : "pagado contra entrega"} ·{" "}
               {o.courier_id ? "repartidor asignado" : "sin repartidor"}
             </p>
           </div>

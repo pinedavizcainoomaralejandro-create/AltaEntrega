@@ -41,8 +41,9 @@ export default function StoreProfileForm({ store }: { store: StoreRow }) {
         <input
           name="nombre"
           required
-          defaultValue={state.values?.nombre ?? store.nombre}
-          className="w-full rounded-md border border-neutral-300 px-3 py-2"
+          readOnly
+          defaultValue={store.nombre}
+          className="w-full rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2 text-neutral-600"
         />
       </div>
 
@@ -51,9 +52,13 @@ export default function StoreProfileForm({ store }: { store: StoreRow }) {
         <input
           name="direccion"
           required
-          defaultValue={state.values?.direccion ?? store.direccion}
-          className="w-full rounded-md border border-neutral-300 px-3 py-2"
+          readOnly
+          defaultValue={store.direccion}
+          className="w-full rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2 text-neutral-600"
         />
+        <p className="mt-1 text-xs text-neutral-500">
+          El nombre y la dirección fueron verificados por un administrador. Para cambiarlos, contacta a soporte.
+        </p>
       </div>
 
       <div>
