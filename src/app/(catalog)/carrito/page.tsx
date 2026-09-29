@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useActionState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useFormStatus } from "react-dom";
 import { useCart } from "@/lib/cart/CartContext";
@@ -16,7 +17,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="w-full rounded-md bg-neutral-900 px-4 py-2 text-white disabled:opacity-50"
+      className="btn-primary w-full"
     >
       {pending ? "Reservando tu pedido..." : "Continuar al pago"}
     </button>
@@ -66,27 +67,31 @@ export default function CarritoPage() {
     return (
       <div>
         {notices.length > 0 && (
-          <ul className="mb-4 rounded-md bg-amber-50 p-3 text-sm text-amber-800">
+          <ul className="mb-4 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">
             {notices.map((n) => (
               <li key={n}>{n}</li>
             ))}
           </ul>
         )}
-        <h1 className="mb-2 text-2xl font-semibold">Tu carrito está vacío</h1>
-        <Link href="/" className="underline">
-          Explorar tiendas
-        </Link>
+        <div className="card mx-auto flex max-w-lg flex-col items-center gap-3 px-6 py-12 text-center">
+          <Image src="/images/boutique-percha.svg" alt="" width={220} height={160} unoptimized />
+          <h1 className="font-display text-3xl font-semibold tracking-tight">Tu carrito está vacío</h1>
+          <p className="text-sm text-stone-500">Date una vuelta por las boutiques de Villa Altagracia.</p>
+          <Link href="/" className="btn-primary mt-2">
+            Explorar tiendas
+          </Link>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-lg">
-      <h1 className="mb-1 text-2xl font-semibold">Tu carrito</h1>
-      <p className="mb-6 text-sm text-neutral-500">{cart.storeNombre}</p>
+    <div className="card mx-auto max-w-lg p-6 sm:p-8">
+      <h1 className="mb-1 font-display text-3xl font-semibold tracking-tight">Tu carrito</h1>
+      <p className="mb-6 text-sm text-stone-500">{cart.storeNombre}</p>
 
       {notices.length > 0 && (
-        <ul className="mb-6 flex flex-col gap-1 rounded-md bg-amber-50 p-3 text-sm text-amber-800">
+        <ul className="mb-6 flex flex-col gap-1 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">
           {notices.map((n) => (
             <li key={n}>{n}</li>
           ))}
@@ -95,10 +100,10 @@ export default function CarritoPage() {
 
       <div className="mb-6 flex flex-col gap-3">
         {cart.items.map((item) => (
-          <div key={item.productId} className="flex items-center gap-3 border-b border-neutral-100 pb-3">
+          <div key={item.productId} className="flex items-center gap-3 border-b border-stone-100 pb-3">
             <div className="flex-1">
               <p className="font-medium">{item.nombre}</p>
-              <p className="text-sm text-neutral-500">RD${item.precio.toFixed(2)} c/u</p>
+              <p className="text-sm text-stone-500">RD${item.precio.toFixed(2)} c/u</p>
             </div>
             <input
               type="number"
@@ -106,12 +111,12 @@ export default function CarritoPage() {
               max={item.stockDisponible}
               value={item.cantidad}
               onChange={(e) => cart.setQuantity(item.productId, Number(e.target.value))}
-              className="w-16 rounded-md border border-neutral-300 px-2 py-1 text-sm"
+              className="input w-20 px-2 py-1.5 text-sm"
             />
             <button
               type="button"
               onClick={() => cart.removeItem(item.productId)}
-              className="text-sm text-red-600 underline"
+              className="text-sm font-medium text-red-600 hover:underline"
             >
               Quitar
             </button>
@@ -128,7 +133,7 @@ export default function CarritoPage() {
           <span>Delivery</span>
           <span>{deliveryFee === null ? "..." : `RD$${deliveryFee.toFixed(2)}`}</span>
         </div>
-        <div className="mt-1 flex justify-between border-t border-neutral-100 pt-2 text-lg font-medium">
+        <div className="mt-1 flex justify-between border-t border-stone-100 pt-2 text-lg font-medium">
           <span>Total</span>
           <span>RD${(cart.total + (deliveryFee ?? 0)).toFixed(2)}</span>
         </div>
@@ -143,7 +148,7 @@ export default function CarritoPage() {
         />
 
         <div>
-          <label htmlFor="direccion_entrega" className="mb-1 block text-sm font-medium">
+          <label htmlFor="direccion_entrega" className="label">
             Dirección de entrega
           </label>
           <textarea
@@ -151,11 +156,11 @@ export default function CarritoPage() {
             name="direccion_entrega" defaultValue={state.values?.direccion_entrega}
             required
             rows={2}
-            className="w-full rounded-md border border-neutral-300 px-3 py-2"
+            className="input"
           />
         </div>
 
-        <p className="text-xs text-neutral-500">
+        <p className="text-xs text-stone-500">
           Pagas con tarjeta en el siguiente paso, en la página segura de AZUL.
         </p>
 

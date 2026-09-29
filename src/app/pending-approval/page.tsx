@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { signOutAction } from "../(auth)/actions";
-import HomeLink from "@/components/HomeLink";
+import AuthShell from "@/components/brand/AuthShell";
 
 export default async function PendingApprovalPage() {
   const supabase = await createClient();
@@ -23,29 +23,36 @@ export default async function PendingApprovalPage() {
       : (await supabase.from("couriers").select("estado").eq("user_id", user.id).maybeSingle()).data?.estado;
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-4 px-4 text-center">
-      <HomeLink className="self-start" />
-      <h1 className="text-2xl font-semibold">
-        {estado === "rechazado" ? "Solicitud rechazada" : "Cuenta pendiente de aprobación"}
-      </h1>
-      <p className="text-neutral-500">
-        {estado === "rechazado"
-          ? "Tu solicitud fue rechazada por un administrador. Puedes corregir tus datos y enviarlos de nuevo."
-          : "Un administrador está revisando tu perfil. Te avisaremos apenas sea aprobado."}
-      </p>
+    <AuthShell
+      title={estado === "rechazado" ? "Solicitud rechazada" : "¡Recibimos tu solicitud!"}
+      subtitle={
+        estado === "rechazado"
+          ? "Un administrador rechazó tu solicitud. Puedes corregir tus datos y enviarlos de nuevo."
+          : "Estamos revisando tu perfil. Te avisaremos apenas sea aprobado; mientras tanto puedes ver el catálogo desde Inicio."
+      }
+    >
+      {estado !== "rechazado" && (
+        <div className="flex items-center gap-3 rounded-2xl bg-monte-50 p-4 text-sm text-monte-800">
+          <span className="relative flex h-3 w-3">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-monte-400 opacity-75" />
+            <span className="relative inline-flex h-3 w-3 rounded-full bg-monte-500" />
+          </span>
+          En revisión por el equipo de AltaEntrega
+        </div>
+      )}
       {estado === "rechazado" && (
         <Link
           href={profile?.rol === "tienda" ? "/complete-profile/tienda" : "/complete-profile/delivery"}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm text-white"
+          className="btn-primary"
         >
           Corregir mis datos y reenviar
         </Link>
       )}
       <form action={signOutAction}>
-        <button type="submit" className="rounded-md border border-neutral-300 px-4 py-2 text-sm">
+        <button type="submit" className="btn-secondary">
           Cerrar sesión
         </button>
       </form>
-    </div>
+    </AuthShell>
   );
 }

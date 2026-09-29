@@ -1,12 +1,11 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { signOutAction } from "@/app/(auth)/actions";
 import { setStoreStatusAction, setCourierStatusAction, cancelOrderAction } from "./actions";
 import CancelOrderButton from "@/components/admin/CancelOrderButton";
 import PaymentsAdmin from "@/components/admin/PaymentsAdmin";
 import ApprovalActions from "@/components/admin/ApprovalActions";
 import { ORDER_STATUS_LABEL } from "@/lib/orderStatus";
-import HomeLink from "@/components/HomeLink";
+import PanelHeader from "@/components/brand/PanelHeader";
 import { formatFecha } from "@/lib/format";
 
 const ORDERS_PAGE_SIZE = 50;
@@ -106,18 +105,8 @@ export default async function AdminPage({
   const totalPages = Math.max(1, Math.ceil((totalOrders ?? 0) / ORDERS_PAGE_SIZE));
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
-      <div className="mb-8 flex items-center justify-between border-b border-neutral-200 pb-4">
-        <h1 className="text-xl font-semibold">Panel de administración</h1>
-        <div className="flex items-center gap-4">
-          <HomeLink />
-          <form action={signOutAction}>
-            <button type="submit" className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm">
-              Cerrar sesión
-            </button>
-          </form>
-        </div>
-      </div>
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+      <PanelHeader etiqueta="AltaEntrega" titulo="Panel de administración" />
 
       <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <MetricCard label="Tiendas activas" value={tiendasActivas ?? 0} />
@@ -128,9 +117,9 @@ export default async function AdminPage({
       <PaymentsAdmin configResult={config} />
 
       <section className="mb-10">
-        <h2 className="mb-3 text-lg font-medium">Tiendas pendientes de aprobación</h2>
+        <h2 className="mb-3 font-display text-xl font-semibold">Tiendas pendientes de aprobación</h2>
         {!pendingStores || pendingStores.length === 0 ? (
-          <p className="text-sm text-neutral-500">No hay tiendas pendientes.</p>
+          <p className="text-sm text-stone-500">No hay tiendas pendientes.</p>
         ) : (
           <div className="flex flex-col gap-3">
             {pendingStores.map((s) => {
@@ -138,14 +127,14 @@ export default async function AdminPage({
               return (
                 <div
                   key={s.id}
-                  className="flex flex-col gap-2 rounded-lg border border-neutral-200 p-4 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-2 card p-4 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="min-w-0">
                     <p className="font-medium">{s.nombre}</p>
-                    <p className="text-sm text-neutral-500">
+                    <p className="text-sm text-stone-500">
                       {s.categoria} · {s.direccion}
                     </p>
-                    <p className="text-xs text-neutral-400">
+                    <p className="text-xs text-stone-400">
                       Solicitado por {owner?.nombre ?? "—"} ({owner?.email ?? "—"}
                       {owner?.telefono ? `, ${owner.telefono}` : ""})
                     </p>
@@ -163,9 +152,9 @@ export default async function AdminPage({
       </section>
 
       <section className="mb-10">
-        <h2 className="mb-3 text-lg font-medium">Repartidores pendientes de aprobación</h2>
+        <h2 className="mb-3 font-display text-xl font-semibold">Repartidores pendientes de aprobación</h2>
         {!pendingCouriers || pendingCouriers.length === 0 ? (
-          <p className="text-sm text-neutral-500">No hay repartidores pendientes.</p>
+          <p className="text-sm text-stone-500">No hay repartidores pendientes.</p>
         ) : (
           <div className="flex flex-col gap-3">
             {pendingCouriers.map((c) => {
@@ -173,14 +162,14 @@ export default async function AdminPage({
               return (
                 <div
                   key={c.id}
-                  className="flex flex-col gap-2 rounded-lg border border-neutral-200 p-4 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-2 card p-4 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="min-w-0">
                     <p className="font-medium">{owner?.nombre ?? "—"}</p>
-                    <p className="text-sm text-neutral-500">
+                    <p className="text-sm text-stone-500">
                       {c.vehiculo} · Cédula {c.documento_identidad} · Matrícula {c.matricula}
                     </p>
-                    <p className="text-xs text-neutral-400">
+                    <p className="text-xs text-stone-400">
                       {owner?.email ?? "—"}
                       {owner?.telefono ? ` · ${owner.telefono}` : ""}
                     </p>
@@ -198,13 +187,13 @@ export default async function AdminPage({
       </section>
 
       <section>
-        <h2 className="mb-3 text-lg font-medium">Pedidos ({totalOrders ?? 0})</h2>
+        <h2 className="mb-3 font-display text-xl font-semibold">Pedidos ({totalOrders ?? 0})</h2>
         {orderRows.length === 0 ? (
-          <p className="text-sm text-neutral-500">Todavía no hay pedidos.</p>
+          <p className="text-sm text-stone-500">Todavía no hay pedidos.</p>
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-neutral-200">
+          <div className="overflow-x-auto card">
             <table className="w-full min-w-[720px] text-left text-sm">
-              <thead className="bg-neutral-50 text-xs uppercase text-neutral-500">
+              <thead className="bg-stone-50 text-xs uppercase text-stone-500">
                 <tr>
                   <th className="px-3 py-2">Fecha</th>
                   <th className="px-3 py-2">Tienda</th>
@@ -218,8 +207,8 @@ export default async function AdminPage({
               </thead>
               <tbody>
                 {orderRows.map((o) => (
-                  <tr key={o.id} className="border-t border-neutral-100">
-                    <td className="px-3 py-2 text-neutral-500">
+                  <tr key={o.id} className="border-t border-stone-100">
+                    <td className="px-3 py-2 text-stone-500">
                       {formatFecha(o.created_at)}
                     </td>
                     <td className="px-3 py-2">{storeNameById.get(o.store_id) ?? "—"}</td>
@@ -244,17 +233,17 @@ export default async function AdminPage({
         {totalPages > 1 && (
           <div className="mt-3 flex items-center justify-between text-sm">
             {page > 1 ? (
-              <Link href={`/admin?page=${page - 1}`} className="underline">
+              <Link href={`/admin?page=${page - 1}`} className="link">
                 ← Más recientes
               </Link>
             ) : (
               <span />
             )}
-            <span className="text-neutral-500">
+            <span className="text-stone-500">
               Página {page} de {totalPages}
             </span>
             {page < totalPages ? (
-              <Link href={`/admin?page=${page + 1}`} className="underline">
+              <Link href={`/admin?page=${page + 1}`} className="link">
                 Más antiguos →
               </Link>
             ) : (
@@ -269,9 +258,10 @@ export default async function AdminPage({
 
 function MetricCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-lg border border-neutral-200 p-4">
-      <p className="text-sm text-neutral-500">{label}</p>
-      <p className="text-3xl font-semibold">{value}</p>
+    <div className="card relative overflow-hidden p-5">
+      <span className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-sol-100" aria-hidden />
+      <p className="relative text-sm font-medium text-stone-500">{label}</p>
+      <p className="relative mt-1 font-display text-4xl font-semibold text-monte-800">{value}</p>
     </div>
   );
 }

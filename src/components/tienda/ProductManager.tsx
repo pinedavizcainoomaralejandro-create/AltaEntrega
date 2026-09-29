@@ -32,7 +32,7 @@ function DeleteButton({ productId }: { productId: string }) {
       className="text-right"
     >
       <input type="hidden" name="id" value={productId} />
-      <button type="submit" className="text-sm text-red-600 underline">
+      <button type="submit" className="text-sm font-medium text-red-600 hover:underline">
         Eliminar
       </button>
       {state.error && <p className="mt-1 text-xs text-red-600">{state.error}</p>}
@@ -44,7 +44,7 @@ function ReactivateButton({ productId }: { productId: string }) {
   return (
     <form action={reactivateProductAction}>
       <input type="hidden" name="id" value={productId} />
-      <button type="submit" className="text-sm text-green-700 underline">
+      <button type="submit" className="text-sm text-monte-700 underline">
         Reactivar
       </button>
     </form>
@@ -57,34 +57,34 @@ export default function ProductManager({ products }: { products: ProductRow[] })
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-medium">Productos ({products.length})</h2>
+        <h2 className="font-display text-xl font-semibold">Productos ({products.length})</h2>
         <button
           onClick={() => setModal({ mode: "create" })}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm text-white"
+          className="btn-primary"
         >
           + Nuevo producto
         </button>
       </div>
 
       {products.length === 0 ? (
-        <p className="rounded-md border border-dashed border-neutral-300 p-8 text-center text-sm text-neutral-500">
+        <p className="rounded-2xl border border-dashed border-stone-300 bg-white/60 p-10 text-center text-sm text-stone-500">
           Todavía no tienes productos. Crea el primero.
         </p>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {products.map((p) => (
-            <div key={p.id} className="flex flex-col overflow-hidden rounded-lg border border-neutral-200">
-              <div className="relative aspect-square bg-neutral-100">
+            <div key={p.id} className="flex flex-col overflow-hidden card">
+              <div className="relative aspect-square bg-stone-100">
                 {p.foto ? (
                   <Image src={p.foto} alt={p.nombre} fill className="object-cover" unoptimized />
                 ) : (
-                  <div className="flex h-full items-center justify-center text-xs text-neutral-400">
+                  <div className="flex h-full items-center justify-center text-xs text-stone-400">
                     Sin foto
                   </div>
                 )}
                 <div className="absolute left-2 top-2 flex gap-1">
                   {!p.activo && (
-                    <span className="rounded bg-neutral-600 px-2 py-0.5 text-xs font-medium text-white">
+                    <span className="rounded bg-stone-600 px-2 py-0.5 text-xs font-medium text-white">
                       Oculto
                     </span>
                   )}
@@ -97,21 +97,21 @@ export default function ProductManager({ products }: { products: ProductRow[] })
               </div>
               <div className="flex flex-1 flex-col gap-1 p-3">
                 <p className="font-medium">{p.nombre}</p>
-                <p className="text-sm text-neutral-500">
+                <p className="text-sm text-stone-500">
                   {[p.talla, p.color].filter(Boolean).join(" · ") || "—"}
                 </p>
                 <p className="text-sm">
                   Recibes RD${p.precio.toFixed(2)} · stock: {p.stock}
                 </p>
                 {!p.activo && (
-                  <p className="text-xs text-neutral-500">
+                  <p className="text-xs text-stone-500">
                     Tiene ventas, así que se ocultó del catálogo en lugar de borrarse.
                   </p>
                 )}
                 <div className="mt-auto flex items-center justify-between pt-2">
                   <button
                     onClick={() => setModal({ mode: "edit", product: p })}
-                    className="text-sm underline"
+                    className="link text-sm"
                   >
                     Editar
                   </button>

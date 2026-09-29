@@ -95,14 +95,14 @@ export default async function PaymentsAdmin({ configResult }: { configResult?: s
     <div>
       <h3 className="mb-2 font-medium">{title}</h3>
       {payouts.length === 0 ? (
-        <p className="text-sm text-neutral-500">Nada pendiente.</p>
+        <p className="text-sm text-stone-500">Nada pendiente.</p>
       ) : (
         <ul className="flex flex-col gap-2">
           {payouts.map((p) => (
-            <li key={p.key} className="flex items-center justify-between gap-3 rounded-md border border-neutral-200 p-3 text-sm">
+            <li key={p.key} className="flex items-center justify-between gap-3 rounded-xl border border-stone-200 bg-arena-50 p-3 text-sm">
               <span className="min-w-0">
                 <span className="font-medium">{p.nombre}</span>
-                <span className="text-neutral-500"> · {p.orderIds.length} pedido(s)</span>
+                <span className="text-stone-500"> · {p.orderIds.length} pedido(s)</span>
               </span>
               <span className="flex shrink-0 items-center gap-3">
                 <span className="font-medium">RD${p.monto.toFixed(2)}</span>
@@ -121,9 +121,9 @@ export default async function PaymentsAdmin({ configResult }: { configResult?: s
   );
 
   return (
-    <section className="mb-10 flex flex-col gap-6 rounded-lg border border-neutral-200 p-4">
+    <section className="mb-10 flex flex-col gap-6 card p-4">
       <div>
-        <h2 className="mb-3 text-lg font-medium">Cobros y pagos</h2>
+        <h2 className="mb-3 font-display text-xl font-semibold">Cobros y pagos</h2>
         {settings ? (
           <PlatformSettingsForm
             commissionRate={settings.commission_rate}
@@ -135,7 +135,7 @@ export default async function PaymentsAdmin({ configResult }: { configResult?: s
         )}
       </div>
 
-      <p className="text-sm text-neutral-600">
+      <p className="text-sm text-stone-600">
         Comisión ganada en pedidos entregados: <span className="font-medium">RD${comisionTotal.toFixed(2)}</span>
       </p>
 
@@ -147,18 +147,18 @@ export default async function PaymentsAdmin({ configResult }: { configResult?: s
       <div>
         <h3 className="mb-2 font-medium">Reembolsos pendientes</h3>
         {!refunds || refunds.length === 0 ? (
-          <p className="text-sm text-neutral-500">Nada pendiente.</p>
+          <p className="text-sm text-stone-500">Nada pendiente.</p>
         ) : (
           <>
-            <p className="mb-2 text-xs text-neutral-500">
+            <p className="mb-2 text-xs text-stone-500">
               Haz el reembolso desde el portal de AZUL con la referencia y luego márcalo aquí.
             </p>
             <ul className="flex flex-col gap-2">
               {refunds.map((r) => (
-                <li key={r.id} className="flex items-center justify-between gap-3 rounded-md border border-neutral-200 p-3 text-sm">
+                <li key={r.id} className="flex items-center justify-between gap-3 rounded-xl border border-stone-200 bg-arena-50 p-3 text-sm">
                   <span>
                     Pedido {r.codigo} (AZUL #{r.numero}) · RD${r.total.toFixed(2)} · ref. {r.pago_referencia ?? "—"}
-                    {r.pagado_at && <span className="text-neutral-500"> · {formatFecha(r.pagado_at)}</span>}
+                    {r.pagado_at && <span className="text-stone-500"> · {formatFecha(r.pagado_at)}</span>}
                   </span>
                   <AdminActionButton
                     action={markRefundedAction}

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 240" role="img" aria-labelledby="t">
+  <title id="t">Repartidor en motor con una caja de AltaEntrega, frente a las lomas</title>
+  <rect width="360" height="240" fill="#eef6f0"/>
+  <circle cx="290" cy="56" r="28" fill="#f6b85a"/>
+  <path d="M0 150c40-40 80-56 124-46s70 30 112 20 84-40 124-32v148H0z" fill="#7fb993"/>
+  <path d="M0 176c50-24 100-34 150-26s92 18 140 10 56-12 70-12v92H0z" fill="#4f9a6c"/>
+  <!-- Carretera -->
+  <path d="M0 200h360v40H0z" fill="#57534e"/>
+  <path d="M20 220h40M100 220h40M180 220h40M260 220h40" stroke="#f6b85a" stroke-width="4" stroke-linecap="round"/>
+  <!-- Motor -->
+  <circle cx="118" cy="196" r="20" fill="#1c1917"/><circle cx="118" cy="196" r="8" fill="#a8a29e"/>
+  <circle cx="232" cy="196" r="20" fill="#1c1917"/><circle cx="232" cy="196" r="8" fill="#a8a29e"/>
+  <path d="M118 196l30-40h56l28 40" fill="none" stroke="#c96612" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M140 160h70l-6 16h-58z" fill="#e7831a"/>
+  <path d="M204 150l20-18" stroke="#1c1917" stroke-width="6" stroke-linecap="round"/>
+  <path d="M218 128h14" stroke="#1c1917" stroke-width="6" stroke-linecap="round"/>
+  <!-- Caja -->
+  <rect x="104" y="112" width="52" height="46" rx="6" fill="#1c5136"/>
+  <circle cx="130" cy="130" r="7" fill="#f29e33"/>
+  <path d="M110 150c8-8 14-12 22-12s12 6 20 6v8h-42z" fill="#7fb993"/>
+  <!-- Repartidor -->
+  <path d="M168 158l14-44h24l6 34" fill="#226541"/>
+  <path d="M176 158l6 20h12l-4-22z" fill="#123224"/>
+  <circle cx="192" cy="98" r="14" fill="#8b5a3c"/>
+  <path d="M176 96a16 16 0 0 1 32 0z" fill="#e7831a"/>
+  <rect x="176" y="92" width="34" height="6" rx="3" fill="#c96612"/>
+  <path d="M204 124l20 8" stroke="#8b5a3c" stroke-width="7" stroke-linecap="round"/>
+</svg>

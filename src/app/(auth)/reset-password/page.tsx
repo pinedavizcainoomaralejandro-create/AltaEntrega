@@ -3,7 +3,7 @@
 import { useFormStatus } from "react-dom";
 import { useActionState } from "react";
 import { updatePasswordAction, type ResetPasswordState } from "../actions";
-import HomeLink from "@/components/HomeLink";
+import AuthShell from "@/components/brand/AuthShell";
 import PasswordInput from "@/components/PasswordInput";
 
 const initialState: ResetPasswordState = { error: null };
@@ -14,7 +14,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="w-full rounded-md bg-neutral-900 px-4 py-2 text-white disabled:opacity-50"
+      className="btn-primary w-full"
     >
       {pending ? "Guardando..." : "Guardar nueva contraseña"}
     </button>
@@ -25,16 +25,11 @@ export default function ResetPasswordPage() {
   const [state, formAction] = useActionState(updatePasswordAction, initialState);
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 px-4">
-      <HomeLink className="self-start" />
-      <div>
-        <h1 className="text-2xl font-semibold">Crea una nueva contraseña</h1>
-        <p className="text-sm text-neutral-500">Elige una contraseña nueva para tu cuenta.</p>
-      </div>
+    <AuthShell title="Crea una nueva contraseña" subtitle="Elige una contraseña segura para tu cuenta.">
 
       <form action={formAction} className="flex flex-col gap-4">
         <div>
-          <label htmlFor="password" className="mb-1 block text-sm font-medium">
+          <label htmlFor="password" className="label">
             Nueva contraseña
           </label>
           <PasswordInput
@@ -42,12 +37,12 @@ export default function ResetPasswordPage() {
             name="password"
             required
             minLength={8}
-            className="w-full rounded-md border border-neutral-300 px-3 py-2"
+            className="input"
           />
         </div>
 
         <div>
-          <label htmlFor="confirmPassword" className="mb-1 block text-sm font-medium">
+          <label htmlFor="confirmPassword" className="label">
             Confirmar contraseña
           </label>
           <PasswordInput
@@ -55,7 +50,7 @@ export default function ResetPasswordPage() {
             name="confirmPassword"
             required
             minLength={8}
-            className="w-full rounded-md border border-neutral-300 px-3 py-2"
+            className="input"
           />
         </div>
 
@@ -63,6 +58,6 @@ export default function ResetPasswordPage() {
 
         <SubmitButton />
       </form>
-    </div>
+    </AuthShell>
   );
 }

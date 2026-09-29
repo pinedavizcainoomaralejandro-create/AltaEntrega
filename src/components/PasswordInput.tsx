@@ -14,7 +14,7 @@ export default function PasswordInput({ className = "", ...props }: Omit<InputHT
         onClick={() => setVisible((v) => !v)}
         aria-label={visible ? "Ocultar contraseña" : "Mostrar contraseña"}
         aria-pressed={visible}
-        className="absolute inset-y-0 right-0 px-3 text-xs font-medium text-neutral-600 underline"
+        className="absolute inset-y-0 right-0 px-3 text-xs font-medium text-stone-600 underline"
       >
         {visible ? "Ocultar" : "Mostrar"}
       </button>

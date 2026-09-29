@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 260" role="img" aria-labelledby="t">
+  <title id="t">Percha con ropa de colores y una bolsa de compras de AltaEntrega</title>
+  <rect width="360" height="260" fill="#faf6ef"/>
+  <circle cx="300" cy="60" r="70" fill="#fdebcb"/>
+  <rect x="0" y="222" width="360" height="38" fill="#f3ecdf"/>
+  <!-- Estructura del perchero -->
+  <rect x="30" y="40" width="244" height="8" rx="4" fill="#57534e"/>
+  <rect x="36" y="44" width="6" height="180" fill="#57534e"/>
+  <rect x="262" y="44" width="6" height="180" fill="#57534e"/>
+  <rect x="20" y="220" width="38" height="6" rx="3" fill="#57534e"/>
+  <rect x="246" y="220" width="38" height="6" rx="3" fill="#57534e"/>
+  <!-- Ganchos -->
+  <g fill="none" stroke="#78716c" stroke-width="3" stroke-linecap="round">
+    <path d="M72 44v8M60 62l12-10 12 10"/>
+    <path d="M118 44v8M104 62l14-10 14 10"/>
+    <path d="M166 44v8M152 62l14-10 14 10"/>
+    <path d="M214 44v8M200 62l14-10 14 10"/>
+  </g>
+  <!-- Camisa verde -->
+  <path d="M52 62l20-4 20 4 14 18-10 8-6-6v78H54V82l-6 6-10-8z" fill="#2f7d51"/>
+  <path d="M66 58l6 12 6-12" fill="#226541"/>
+  <path d="M72 70v90" stroke="#226541" stroke-width="2"/>
+  <!-- Vestido naranja -->
+  <path d="M106 62h24l6 34 18 88H82l18-88z" fill="#e7831a"/>
+  <path d="M100 96h36" stroke="#c96612" stroke-width="5"/>
+  <path d="M92 150h52" stroke="#f6b85a" stroke-width="3" stroke-dasharray="6 6"/>
+  <!-- Blusa arena -->
+  <path d="M148 62l18-4 18 4 16 22-10 6-8-8v54h-32v-54l-8 8-10-6z" fill="#e8dcc6"/>
+  <circle cx="166" cy="92" r="3" fill="#a8a29e"/><circle cx="166" cy="108" r="3" fill="#a8a29e"/><circle cx="166" cy="124" r="3" fill="#a8a29e"/>
+  <!-- Vestido estampado -->
+  <path d="M202 62h24l4 30 16 96h-64l16-96z" fill="#123224"/>
+  <g fill="#f29e33">
+    <circle cx="206" cy="118" r="4"/><circle cx="222" cy="136" r="4"/><circle cx="204" cy="158" r="4"/>
+    <circle cx="228" cy="170" r="4"/><circle cx="214" cy="100" r="3"/>
+  </g>
+  <g fill="#7fb993">
+    <circle cx="226" cy="110" r="3"/><circle cx="212" cy="140" r="3"/><circle cx="196" cy="178" r="3"/>
+  </g>
+  <!-- Zapatos -->
+  <path d="M70 216c0-8 6-12 12-12h6c4 0 6 4 12 6s6 6 6 6z" fill="#843e16"/>
+  <path d="M112 216c0-8 6-12 12-12h6c4 0 6 4 12 6s6 6 6 6z" fill="#843e16"/>
+  <!-- Bolsa de compras AltaEntrega -->
+  <path d="M292 130a20 20 0 0 1 40 0" fill="none" stroke="#1c5136" stroke-width="5" stroke-linecap="round"/>
+  <path d="M280 128h64l8 96h-80z" fill="#1c5136"/>
+  <circle cx="320" cy="164" r="10" fill="#f29e33"/>
+  <path d="M290 196c10-12 18-18 28-18s14 8 24 8l2 30h-56z" fill="#4f9a6c"/>
+  <path d="M288 212c12-8 22-10 32-10s18 4 26 2l1 14h-60z" fill="#aed5ba"/>
+</svg>

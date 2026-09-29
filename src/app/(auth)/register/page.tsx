@@ -4,7 +4,7 @@ import { useFormStatus } from "react-dom";
 import { useActionState } from "react";
 import Link from "next/link";
 import { signUpAction, type AuthFormState } from "../actions";
-import HomeLink from "@/components/HomeLink";
+import AuthShell from "@/components/brand/AuthShell";
 import PasswordInput from "@/components/PasswordInput";
 
 const initialState: AuthFormState = { error: null };
@@ -21,7 +21,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="w-full rounded-md bg-neutral-900 px-4 py-2 text-white disabled:opacity-50"
+      className="btn-primary w-full"
     >
       {pending ? "Creando cuenta..." : "Crear cuenta"}
     </button>
@@ -32,24 +32,19 @@ export default function RegisterPage() {
   const [state, formAction] = useActionState(signUpAction, initialState);
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 px-4">
-      <HomeLink className="self-start" />
-      <div>
-        <h1 className="text-2xl font-semibold">Crear cuenta en AltaEntrega</h1>
-        <p className="text-sm text-neutral-500">
-          Si te registras como Tienda o Delivery, luego completarás un perfil
-          que debe ser aprobado por un administrador.
-        </p>
-      </div>
+    <AuthShell
+      title="Crea tu cuenta"
+      subtitle="Compra en las boutiques de tu pueblo, vende en tu tienda o reparte pedidos. Tiendas y repartidores pasan por una aprobación rápida."
+    >
 
       <form action={formAction} className="flex flex-col gap-4">
         <div>
-          <label className="mb-1 block text-sm font-medium">Quiero registrarme como</label>
+          <label className="label">Quiero registrarme como</label>
           <div className="grid grid-cols-3 gap-2">
             {ROLES.map((r) => (
               <label
                 key={r.value}
-                className="flex cursor-pointer items-center justify-center rounded-md border border-neutral-300 p-2 text-sm has-[:checked]:border-neutral-900 has-[:checked]:bg-neutral-900 has-[:checked]:text-white"
+                className="flex cursor-pointer items-center justify-center rounded-xl border border-stone-300 bg-white p-2.5 text-sm font-medium transition hover:border-monte-400 has-[:checked]:border-monte-700 has-[:checked]:bg-monte-700 has-[:checked]:text-white"
               >
                 <input
                   type="radio"
@@ -65,13 +60,13 @@ export default function RegisterPage() {
         </div>
 
         <div>
-          <label htmlFor="nombre" className="mb-1 block text-sm font-medium">Nombre</label>
-          <input id="nombre" name="nombre" defaultValue={state.values?.nombre} required minLength={2} maxLength={80} autoComplete="name" className="w-full rounded-md border border-neutral-300 px-3 py-2" />
+          <label htmlFor="nombre" className="label">Nombre</label>
+          <input id="nombre" name="nombre" defaultValue={state.values?.nombre} required minLength={2} maxLength={80} autoComplete="name" className="input" />
         </div>
 
         <div>
-          <label htmlFor="telefono" className="mb-1 block text-sm font-medium">
-            Teléfono <span className="font-normal text-neutral-500">(opcional)</span>
+          <label htmlFor="telefono" className="label">
+            Teléfono <span className="font-normal text-stone-500">(opcional)</span>
           </label>
           <input
             id="telefono"
@@ -80,17 +75,17 @@ export default function RegisterPage() {
             inputMode="tel"
             autoComplete="tel"
             placeholder="809-555-1234"
-            className="w-full rounded-md border border-neutral-300 px-3 py-2"
+            className="input"
           />
         </div>
 
         <div>
-          <label htmlFor="email" className="mb-1 block text-sm font-medium">Email</label>
-          <input id="email" name="email" defaultValue={state.values?.email} type="email" required autoComplete="email" className="w-full rounded-md border border-neutral-300 px-3 py-2" />
+          <label htmlFor="email" className="label">Email</label>
+          <input id="email" name="email" defaultValue={state.values?.email} type="email" required autoComplete="email" className="input" />
         </div>
 
         <div>
-          <label htmlFor="password" className="mb-1 block text-sm font-medium">Contraseña</label>
+          <label htmlFor="password" className="label">Contraseña</label>
           <PasswordInput
             id="password"
             name="password"
@@ -98,13 +93,13 @@ export default function RegisterPage() {
             minLength={8}
             maxLength={72}
             autoComplete="new-password"
-            className="w-full rounded-md border border-neutral-300 px-3 py-2"
+            className="input"
           />
-          <p className="mt-1 text-xs text-neutral-500">Mínimo 8 caracteres, con letras y números.</p>
+          <p className="mt-1 text-xs text-stone-500">Mínimo 8 caracteres, con letras y números.</p>
         </div>
 
         <div>
-          <label htmlFor="confirmPassword" className="mb-1 block text-sm font-medium">Confirmar contraseña</label>
+          <label htmlFor="confirmPassword" className="label">Confirmar contraseña</label>
           <PasswordInput
             id="confirmPassword"
             name="confirmPassword"
@@ -112,7 +107,7 @@ export default function RegisterPage() {
             minLength={8}
             maxLength={72}
             autoComplete="new-password"
-            className="w-full rounded-md border border-neutral-300 px-3 py-2"
+            className="input"
           />
         </div>
 
@@ -121,12 +116,12 @@ export default function RegisterPage() {
         <SubmitButton />
       </form>
 
-      <p className="text-center text-sm text-neutral-500">
+      <p className="text-center text-sm text-stone-500">
         ¿Ya tienes cuenta?{" "}
-        <Link href="/login" className="font-medium text-neutral-900 underline">
+        <Link href="/login" className="link">
           Inicia sesión
         </Link>
       </p>
-    </div>
+    </AuthShell>
   );
 }

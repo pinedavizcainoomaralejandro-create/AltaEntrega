@@ -58,19 +58,19 @@ export default async function PedidoDetallePage({
 
   return (
     <div className="mx-auto max-w-lg">
-      <Link href="/pedidos" className="mb-4 inline-block text-sm underline">
+      <Link href="/pedidos" className="link mb-4 inline-block text-sm">
         ← Mis pedidos
       </Link>
 
       <PaymentResultBanner pago={pago} />
 
-      <h1 className="mb-1 text-2xl font-semibold">{store?.nombre ?? "Tienda"}</h1>
-      <p className="text-xs text-neutral-400">Pedido {order.codigo}</p>
-      <p className="mb-6 text-sm text-neutral-500">{order.direccion_entrega}</p>
+      <h1 className="mb-1 font-display text-3xl font-semibold tracking-tight">{store?.nombre ?? "Tienda"}</h1>
+      <p className="text-xs text-stone-400">Pedido {order.codigo}</p>
+      <p className="mb-6 text-sm text-stone-500">{order.direccion_entrega}</p>
 
-      <div className="mb-6 rounded-lg border border-neutral-200 p-4">
+      <div className="mb-6 card p-4">
         <p className="mb-2 font-medium">Productos</p>
-        <ul className="flex flex-col gap-1 text-sm text-neutral-600">
+        <ul className="flex flex-col gap-1 text-sm text-stone-600">
           {(items ?? []).map((i) => (
             <li key={i.id} className="flex justify-between gap-2">
               <span className="min-w-0 truncate">
@@ -80,7 +80,7 @@ export default async function PedidoDetallePage({
             </li>
           ))}
         </ul>
-        <div className="mt-2 flex justify-between border-t border-neutral-100 pt-2 text-sm">
+        <div className="mt-2 flex justify-between border-t border-stone-100 pt-2 text-sm">
           <span>Delivery</span>
           <span>RD${order.delivery_fee.toFixed(2)}</span>
         </div>
@@ -88,18 +88,18 @@ export default async function PedidoDetallePage({
           <span>Total</span>
           <span>RD${order.total.toFixed(2)}</span>
         </div>
-        <p className="mt-1 text-xs text-neutral-400">{ESTADO_PAGO_LABEL[order.estado_pago] ?? order.estado_pago}</p>
+        <p className="mt-1 text-xs text-stone-400">{ESTADO_PAGO_LABEL[order.estado_pago] ?? order.estado_pago}</p>
         {order.estado === "esperando_pago" && (
           <Link
             href={`/pagar/${order.id}`}
-            className="mt-3 inline-block rounded-md bg-neutral-900 px-4 py-2 text-sm text-white"
+            className="mt-3 inline-block btn-primary"
           >
             Completar el pago
           </Link>
         )}
       </div>
 
-      <h2 className="mb-3 text-lg font-medium">Seguimiento</h2>
+      <h2 className="mb-3 font-display text-xl font-semibold">Seguimiento</h2>
       <OrderTimeline orderId={order.id} initialHistory={history ?? []} />
     </div>
   );

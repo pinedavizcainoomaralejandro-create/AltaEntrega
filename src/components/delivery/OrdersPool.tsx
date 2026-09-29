@@ -88,7 +88,7 @@ export default function OrdersPool() {
   }
 
   if (orders === null) {
-    return <p className="text-sm text-neutral-500">Cargando...</p>;
+    return <p className="text-sm text-stone-500">Cargando...</p>;
   }
 
   return (
@@ -96,15 +96,15 @@ export default function OrdersPool() {
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       {orders.length === 0 ? (
-        <p className="text-sm text-neutral-500">No hay pedidos disponibles por ahora.</p>
+        <p className="text-sm text-stone-500">No hay pedidos disponibles por ahora.</p>
       ) : (
         orders.map((o) => (
-          <div key={o.id} className="flex items-center justify-between gap-3 rounded-lg border border-neutral-200 p-3">
+          <div key={o.id} className="flex items-center justify-between gap-3 card p-3">
             <div className="min-w-0">
               <p className="font-medium">{o.storeNombre}</p>
-              <p className="truncate text-sm text-neutral-500">Recoger: {o.storeDireccion}</p>
-              <p className="truncate text-sm text-neutral-500">Entregar: {o.direccion_entrega}</p>
-              <p className="text-xs text-neutral-400">
+              <p className="truncate text-sm text-stone-500">Recoger: {o.storeDireccion}</p>
+              <p className="truncate text-sm text-stone-500">Entregar: {o.direccion_entrega}</p>
+              <p className="text-xs text-stone-400">
                 Ganas RD${o.delivery_fee.toFixed(2)} · ya pagado por el cliente
               </p>
             </div>
@@ -112,7 +112,7 @@ export default function OrdersPool() {
               type="button"
               disabled={claimingId === o.id}
               onClick={() => handleAccept(o.id)}
-              className="shrink-0 rounded-md bg-neutral-900 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+              className="shrink-0 btn-primary btn-sm"
             >
               {claimingId === o.id ? "Aceptando..." : "Aceptar entrega"}
             </button>

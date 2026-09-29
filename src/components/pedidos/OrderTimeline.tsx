@@ -63,7 +63,7 @@ export default function OrderTimeline({
   return (
     <div>
       {current && (
-        <p className="mb-4 inline-block rounded-full bg-neutral-900 px-3 py-1 text-sm font-medium text-white">
+        <p className="badge mb-4 bg-monte-100 px-3 py-1 text-sm text-monte-800">
           Estado actual: {ORDER_STATUS_LABEL[current]}
         </p>
       )}
@@ -74,25 +74,25 @@ export default function OrderTimeline({
             type="button"
             disabled={cancelling}
             onClick={handleCancel}
-            className="rounded-md border border-red-300 px-3 py-1.5 text-sm text-red-600 disabled:opacity-50"
+            className="btn-danger btn-sm"
           >
             {cancelling ? "Cancelando..." : "Cancelar pedido"}
           </button>
-          <p className="mt-1 text-xs text-neutral-500">Puedes cancelarlo mientras la tienda no lo haya confirmado.</p>
+          <p className="mt-1 text-xs text-stone-500">Puedes cancelarlo mientras la tienda no lo haya confirmado.</p>
         </div>
       )}
 
       {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
 
       {history.length === 0 ? (
-        <p className="text-sm text-neutral-500">Todavía no hay actualizaciones de estado.</p>
+        <p className="text-sm text-stone-500">Todavía no hay actualizaciones de estado.</p>
       ) : (
-        <ol className="flex flex-col gap-4 border-l border-neutral-200 pl-4">
+        <ol className="flex flex-col gap-4 border-l border-stone-200 pl-4">
           {history.map((h) => (
             <li key={h.id} className="relative">
-              <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-neutral-900" />
+              <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-monte-600 ring-4 ring-monte-100" />
               <p className="font-medium">{ORDER_STATUS_LABEL[h.estado]}</p>
-              <p className="text-xs text-neutral-400">
+              <p className="text-xs text-stone-400">
                 {formatFecha(h.fecha)}
               </p>
             </li>

@@ -22,7 +22,7 @@ export default function ApprovalActions({
         <form action={formAction}>
           <input type="hidden" name="id" value={id} />
           <input type="hidden" name="estado" value="aprobado" />
-          <button type="submit" className="rounded-md bg-green-600 px-3 py-1.5 text-sm text-white">
+          <button type="submit" className="btn-primary btn-sm">
             Aprobar
           </button>
         </form>
@@ -34,7 +34,7 @@ export default function ApprovalActions({
         >
           <input type="hidden" name="id" value={id} />
           <input type="hidden" name="estado" value="rechazado" />
-          <button type="submit" className="rounded-md border border-red-300 px-3 py-1.5 text-sm text-red-600">
+          <button type="submit" className="btn-danger btn-sm">
             Rechazar
           </button>
         </form>

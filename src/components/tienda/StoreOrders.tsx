@@ -85,7 +85,7 @@ export default function StoreOrders({ storeId }: { storeId: string }) {
   }
 
   if (orders === null) {
-    return error ? <p className="text-sm text-red-600">{error}</p> : <p className="text-sm text-neutral-500">Cargando...</p>;
+    return error ? <p className="text-sm text-red-600">{error}</p> : <p className="text-sm text-stone-500">Cargando...</p>;
   }
 
   const active = orders.filter((o) => ACTIVE.includes(o.estado));
@@ -94,14 +94,14 @@ export default function StoreOrders({ storeId }: { storeId: string }) {
   const renderOrder = (o: StoreOrder) => {
     const nextLabel = NEXT_LABEL[o.estado];
     return (
-      <div key={o.id} className="flex flex-col gap-2 rounded-lg border border-neutral-200 p-3">
+      <div key={o.id} className="flex flex-col gap-2 card p-3">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0">
             <p className="font-medium">
               {o.codigo} · {ORDER_STATUS_LABEL[o.estado]}
             </p>
-            <p className="truncate text-sm text-neutral-500">Entregar en: {o.direccion_entrega}</p>
-            <p className="text-xs text-neutral-400">
+            <p className="truncate text-sm text-stone-500">Entregar en: {o.direccion_entrega}</p>
+            <p className="text-xs text-stone-400">
               {formatFecha(o.created_at)} ·{" "}
               {o.montoTienda !== null ? `recibes RD$${o.montoTienda.toFixed(2)}` : "pagado contra entrega"} ·{" "}
               {o.courier_id ? "repartidor asignado" : "sin repartidor"}
@@ -113,7 +113,7 @@ export default function StoreOrders({ storeId }: { storeId: string }) {
                 type="button"
                 disabled={busyId === o.id}
                 onClick={() => run(o.id, "store_advance_order")}
-                className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+                className="btn-primary btn-sm"
               >
                 {busyId === o.id ? "Actualizando..." : nextLabel}
               </button>
@@ -127,7 +127,7 @@ export default function StoreOrders({ storeId }: { storeId: string }) {
                     run(o.id, "cancel_order");
                   }
                 }}
-                className="rounded-md border border-red-300 px-3 py-1.5 text-sm text-red-600 disabled:opacity-50"
+                className="btn-danger btn-sm"
               >
                 Cancelar
               </button>
@@ -147,9 +147,9 @@ export default function StoreOrders({ storeId }: { storeId: string }) {
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       <section>
-        <h2 className="mb-3 text-lg font-medium">Pedidos activos ({active.length})</h2>
+        <h2 className="mb-3 font-display text-xl font-semibold">Pedidos activos ({active.length})</h2>
         {active.length === 0 ? (
-          <p className="text-sm text-neutral-500">No tienes pedidos activos.</p>
+          <p className="text-sm text-stone-500">No tienes pedidos activos.</p>
         ) : (
           <div className="flex flex-col gap-3">{active.map(renderOrder)}</div>
         )}
@@ -157,7 +157,7 @@ export default function StoreOrders({ storeId }: { storeId: string }) {
 
       {finished.length > 0 && (
         <section>
-          <h2 className="mb-3 text-lg font-medium">Entregados y cancelados</h2>
+          <h2 className="mb-3 font-display text-xl font-semibold">Entregados y cancelados</h2>
           <div className="flex flex-col gap-3">{finished.map(renderOrder)}</div>
         </section>
       )}

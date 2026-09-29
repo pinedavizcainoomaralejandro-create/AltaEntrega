@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -23,11 +24,14 @@ export default async function PedidosPage() {
   if (!orders || orders.length === 0) {
     return (
       <div>
-        <h1 className="mb-2 text-2xl font-semibold">Mis pedidos</h1>
-        <p className="mb-4 text-neutral-500">Todavía no tienes pedidos.</p>
-        <Link href="/" className="underline">
-          Explorar tiendas
-        </Link>
+        <div className="card mx-auto flex max-w-lg flex-col items-center gap-3 px-6 py-12 text-center">
+          <Image src="/images/repartidor.svg" alt="" width={240} height={160} unoptimized />
+          <h1 className="font-display text-3xl font-semibold tracking-tight">Todavía no tienes pedidos</h1>
+          <p className="text-sm text-stone-500">Cuando compres, aquí podrás seguir tu pedido en vivo.</p>
+          <Link href="/" className="btn-primary mt-2">
+            Explorar tiendas
+          </Link>
+        </div>
       </div>
     );
   }
@@ -38,21 +42,21 @@ export default async function PedidosPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-semibold">Mis pedidos</h1>
+      <h1 className="mb-6 font-display text-3xl font-semibold tracking-tight">Mis pedidos</h1>
       <div className="flex flex-col gap-3">
         {orders.map((o) => (
           <Link
             key={o.id}
             href={`/pedidos/${o.id}`}
-            className="flex items-center justify-between gap-3 rounded-lg border border-neutral-200 p-4 hover:border-neutral-400"
+            className="flex items-center justify-between gap-3 card p-4 hover:border-stone-400"
           >
             <div className="min-w-0">
               <p className="truncate font-medium">{nameById.get(o.store_id) ?? "Tienda"}</p>
-              <p className="text-xs text-neutral-400">{formatFecha(o.created_at)}</p>
+              <p className="text-xs text-stone-400">{formatFecha(o.created_at)}</p>
             </div>
             <div className="shrink-0 text-right">
               <p className="text-sm font-medium">RD${o.total.toFixed(2)}</p>
-              <p className="text-xs text-neutral-500">{ORDER_STATUS_LABEL[o.estado]}</p>
+              <p className="text-xs text-stone-500">{ORDER_STATUS_LABEL[o.estado]}</p>
             </div>
           </Link>
         ))}

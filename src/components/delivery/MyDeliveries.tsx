@@ -91,7 +91,7 @@ export default function MyDeliveries({ courierId }: { courierId: string }) {
   }
 
   if (orders === null) {
-    return <p className="text-sm text-neutral-500">Cargando...</p>;
+    return <p className="text-sm text-stone-500">Cargando...</p>;
   }
 
   return (
@@ -99,17 +99,17 @@ export default function MyDeliveries({ courierId }: { courierId: string }) {
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       {orders.length === 0 ? (
-        <p className="text-sm text-neutral-500">Todavía no tienes entregas asignadas.</p>
+        <p className="text-sm text-stone-500">Todavía no tienes entregas asignadas.</p>
       ) : (
         orders.map((o) => {
           const nextLabel = NEXT_LABEL[o.estado];
           return (
-            <div key={o.id} className="flex flex-col gap-2 rounded-lg border border-neutral-200 p-3">
+            <div key={o.id} className="flex flex-col gap-2 card p-3">
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <p className="font-medium">{o.storeNombre}</p>
-                <p className="truncate text-sm text-neutral-500">{o.direccion_entrega}</p>
-                <p className="text-xs text-neutral-400">
+                <p className="truncate text-sm text-stone-500">{o.direccion_entrega}</p>
+                <p className="text-xs text-stone-400">
                   Ganas RD${o.delivery_fee.toFixed(2)} · {STATUS_LABEL[o.estado]}
                 </p>
               </div>
@@ -118,12 +118,12 @@ export default function MyDeliveries({ courierId }: { courierId: string }) {
                   type="button"
                   disabled={advancingId === o.id}
                   onClick={() => handleAdvance(o.id)}
-                  className="shrink-0 rounded-md bg-neutral-900 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+                  className="shrink-0 btn-primary btn-sm"
                 >
                   {advancingId === o.id ? "Actualizando..." : nextLabel}
                 </button>
               ) : o.estado === "entregado" ? (
-                <span className="shrink-0 rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
+                <span className="shrink-0 rounded-full bg-monte-100 px-3 py-1 text-xs font-medium text-monte-800">
                   Entregado
                 </span>
               ) : (

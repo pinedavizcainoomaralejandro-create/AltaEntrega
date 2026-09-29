@@ -9,17 +9,17 @@ export default async function DeliveryHomePage() {
   return (
     <div className="flex flex-col gap-8">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-neutral-500">Tu disponibilidad</p>
+        <p className="text-sm text-stone-500">Tu disponibilidad</p>
         <AvailabilityToggle courierId={courier.id} initialDisponible={courier.disponible} />
       </div>
 
       <section>
-        <h2 className="mb-3 text-lg font-medium">Pedidos disponibles</h2>
+        <h2 className="mb-3 font-display text-xl font-semibold">Pedidos disponibles</h2>
         <OrdersPool />
       </section>
 
       <section>
-        <h2 className="mb-3 text-lg font-medium">Mis entregas</h2>
+        <h2 className="mb-3 font-display text-xl font-semibold">Mis entregas</h2>
         <MyDeliveries courierId={courier.id} />
       </section>
     </div>

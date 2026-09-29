@@ -38,7 +38,7 @@ export default function AvailabilityToggle({
           });
         }}
         className={`rounded-full px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50 ${
-          disponible ? "bg-green-600 text-white" : "bg-neutral-200 text-neutral-700"
+          disponible ? "bg-monte-600 text-white" : "bg-stone-200 text-stone-700"
         }`}
       >
         {disponible ? "● Disponible" : "○ No disponible"}

@@ -63,17 +63,17 @@ export default function OrderDetails({
 
   return (
     <div className="text-sm">
-      <button type="button" onClick={() => setOpen((v) => !v)} className="text-xs text-neutral-600 underline">
+      <button type="button" onClick={() => setOpen((v) => !v)} className="link text-xs">
         {open ? "Ocultar detalle" : "Ver detalle"}
       </button>
 
       {open && (
-        <div className="mt-2 flex flex-col gap-2 rounded-md bg-neutral-50 p-3">
+        <div className="mt-2 flex flex-col gap-2 rounded-xl bg-stone-50 p-3">
           {error && <p className="text-red-600">{error}</p>}
-          {!error && !items && <p className="text-neutral-500">Cargando...</p>}
+          {!error && !items && <p className="text-stone-500">Cargando...</p>}
 
           {items && (
-            <ul className="flex flex-col gap-0.5 text-neutral-700">
+            <ul className="flex flex-col gap-0.5 text-stone-700">
               {items.map((i) => (
                 <li key={i.id} className="flex justify-between gap-2">
                   <span className="min-w-0 truncate">
@@ -86,12 +86,12 @@ export default function OrderDetails({
           )}
 
           {contacts && show.tienda && (
-            <p className="text-neutral-600">
+            <p className="text-stone-600">
               <span className="font-medium">Recoger en:</span> {contacts.tienda_nombre}, {contacts.tienda_direccion}
               {contacts.tienda_telefono && (
                 <>
                   {" · "}
-                  <a href={`tel:${contacts.tienda_telefono}`} className="underline">
+                  <a href={`tel:${contacts.tienda_telefono}`} className="link">
                     {formatTelefono(contacts.tienda_telefono)}
                   </a>
                 </>
@@ -100,12 +100,12 @@ export default function OrderDetails({
           )}
 
           {contacts && show.cliente && (
-            <p className="text-neutral-600">
+            <p className="text-stone-600">
               <span className="font-medium">Cliente:</span> {contacts.cliente_nombre}
               {contacts.cliente_telefono ? (
                 <>
                   {" · "}
-                  <a href={`tel:${contacts.cliente_telefono}`} className="underline">
+                  <a href={`tel:${contacts.cliente_telefono}`} className="link">
                     {formatTelefono(contacts.cliente_telefono)}
                   </a>
                 </>

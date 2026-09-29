@@ -19,7 +19,7 @@ export default function AddToCartButton({
 
   if (!canBuy) {
     return (
-      <p className="text-center text-xs text-neutral-500">Solo las cuentas de cliente pueden comprar.</p>
+      <p className="text-center text-xs text-stone-500">Solo las cuentas de cliente pueden comprar.</p>
     );
   }
 
@@ -27,7 +27,7 @@ export default function AddToCartButton({
     return (
       <button
         disabled
-        className="w-full rounded-md border border-neutral-200 px-3 py-1.5 text-sm text-neutral-400"
+        className="btn btn-sm w-full border border-stone-200 bg-stone-50 text-stone-400"
       >
         Agotado
       </button>
@@ -42,9 +42,9 @@ export default function AddToCartButton({
         setAdded(true);
         setTimeout(() => setAdded(false), 1200);
       }}
-      className="w-full rounded-md bg-neutral-900 px-3 py-1.5 text-sm text-white"
+      className="btn-primary btn-sm w-full"
     >
-      {added ? "Agregado ✓" : "Agregar al carrito"}
+      {added ? "¡Agregado!" : "Agregar al carrito"}
     </button>
   );
 }

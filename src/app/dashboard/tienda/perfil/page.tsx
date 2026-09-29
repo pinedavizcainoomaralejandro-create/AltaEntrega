@@ -6,7 +6,7 @@ export default async function PerfilTiendaPage() {
 
   return (
     <div>
-      <h2 className="mb-4 text-lg font-medium">Datos de la tienda</h2>
+      <h2 className="mb-4 font-display text-xl font-semibold">Datos de la tienda</h2>
       <StoreProfileForm store={store} />
     </div>
   );

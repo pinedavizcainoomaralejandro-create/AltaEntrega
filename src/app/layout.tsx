@@ -1,21 +1,18 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
+import { Fraunces, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
-});
+// next/font descarga las fuentes al compilar y las sirve desde este mismo
+// dominio (compatible con la CSP, sin llamadas a Google en el navegador).
+const sans = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
+const display = Fraunces({ subsets: ["latin"], variable: "--font-display", display: "swap" });
 
 export const metadata: Metadata = {
-  title: "AltaEntrega",
-  description: "Boutiques y delivery en Villa Altagracia",
+  title: {
+    default: "AltaEntrega · Boutiques de Villa Altagracia",
+    template: "%s · AltaEntrega",
+  },
+  description: "Las boutiques de Villa Altagracia, en la puerta de tu casa.",
 };
 
 export default function RootLayout({
@@ -24,12 +21,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
-      </body>
+    <html lang="es" className={`${sans.variable} ${display.variable}`}>
+      <body>{children}</body>
     </html>
   );
 }

@@ -25,7 +25,7 @@ export default function PlatformSettingsForm({
   return (
     <form action={savePlatformSettingsAction} className="flex flex-wrap items-end gap-4">
       <div>
-        <label htmlFor="comision" className="mb-1 block text-sm font-medium">
+        <label htmlFor="comision" className="label">
           Comisión sobre productos (%)
         </label>
         <input
@@ -37,11 +37,11 @@ export default function PlatformSettingsForm({
           max="49.99"
           required
           defaultValue={Math.round(commissionRate * 10_000) / 100}
-          className="w-32 rounded-md border border-neutral-300 px-3 py-2"
+          className="w-32 input"
         />
       </div>
       <div>
-        <label htmlFor="delivery" className="mb-1 block text-sm font-medium">
+        <label htmlFor="delivery" className="label">
           Tarifa de delivery (RD$)
         </label>
         <input
@@ -53,14 +53,14 @@ export default function PlatformSettingsForm({
           max="10000"
           required
           defaultValue={deliveryFee}
-          className="w-32 rounded-md border border-neutral-300 px-3 py-2"
+          className="w-32 input"
         />
       </div>
-      <button type="submit" className="rounded-md bg-neutral-900 px-4 py-2 text-sm text-white">
+      <button type="submit" className="btn-primary">
         Guardar
       </button>
       {message && <p className={`w-full text-sm ${message.ok ? "text-green-600" : "text-red-600"}`}>{message.text}</p>}
-      <p className="w-full text-xs text-neutral-500">
+      <p className="w-full text-xs text-stone-500">
         La comisión se suma al precio de cada producto y el cliente solo ve el precio final. Los pedidos ya creados
         conservan sus montos.
       </p>

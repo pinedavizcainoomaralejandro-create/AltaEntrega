@@ -2,22 +2,67 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@layer base {
+  body {
+    @apply bg-arena-100 font-sans text-stone-800 antialiased;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  h1,
+  h2,
+  h3 {
+    @apply text-stone-900;
+  }
+
+  ::selection {
+    @apply bg-sol-200 text-stone-900;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+/* Piezas reutilizables del diseño: formularios, botones y tarjetas. */
+@layer components {
+  .input {
+    @apply w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2.5 text-stone-900 shadow-sm transition placeholder:text-stone-400 focus:border-monte-500 focus:outline-none focus:ring-4 focus:ring-monte-500/15 read-only:bg-stone-50 read-only:text-stone-500;
+  }
+
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-stone-700;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition focus:outline-none focus-visible:ring-4 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-primary {
+    @apply btn bg-monte-700 text-white shadow-sm hover:bg-monte-800 focus-visible:ring-monte-500/30;
+  }
+
+  .btn-accent {
+    @apply btn bg-sol-500 text-white shadow-sm hover:bg-sol-600 focus-visible:ring-sol-500/30;
+  }
+
+  .btn-secondary {
+    @apply btn border border-stone-300 bg-white text-stone-700 hover:border-stone-400 hover:bg-stone-50 focus-visible:ring-stone-400/30;
+  }
+
+  .btn-danger {
+    @apply btn border border-red-200 bg-white text-red-600 hover:bg-red-50 focus-visible:ring-red-500/20;
+  }
+
+  .btn-sm {
+    @apply rounded-lg px-3 py-1.5 text-xs;
+  }
+
+  .card {
+    @apply rounded-2xl border border-stone-200/80 bg-white shadow-suave;
+  }
+
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold;
+  }
+
+  .link {
+    @apply font-medium text-monte-700 underline decoration-monte-300 underline-offset-4 transition hover:text-monte-800 hover:decoration-monte-500;
+  }
 }
 
 @layer utilities {

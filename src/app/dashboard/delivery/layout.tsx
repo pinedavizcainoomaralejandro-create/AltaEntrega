@@ -1,27 +1,13 @@
 import { requireOwnCourier } from "@/lib/supabase/current-courier";
-import { signOutAction } from "@/app/(auth)/actions";
-import HomeLink from "@/components/HomeLink";
+import PanelHeader from "@/components/brand/PanelHeader";
 
 export default async function DeliveryLayout({ children }: { children: React.ReactNode }) {
-  const { courier } = await requireOwnCourier();
+  const { supabase, userId, courier } = await requireOwnCourier();
+  const { data: user } = await supabase.from("users").select("nombre").eq("id", userId).maybeSingle();
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8">
-      <div className="mb-6 flex items-center justify-between border-b border-neutral-200 pb-4">
-        <div>
-          <p className="text-sm text-neutral-500">Panel de repartidor</p>
-          <h1 className="text-xl font-semibold">{courier.vehiculo}</h1>
-        </div>
-        <div className="flex items-center gap-4">
-          <HomeLink />
-          <form action={signOutAction}>
-            <button type="submit" className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm">
-              Cerrar sesión
-            </button>
-          </form>
-        </div>
-      </div>
-
+    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+      <PanelHeader etiqueta={`Repartidor · ${courier.vehiculo}`} titulo={user?.nombre ?? "Mis entregas"} />
       {children}
     </div>
   );

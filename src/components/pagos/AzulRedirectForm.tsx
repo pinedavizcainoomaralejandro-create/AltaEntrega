@@ -21,11 +21,11 @@ export default function AzulRedirectForm({
       <button
         type="submit"
         disabled={sending}
-        className="w-full rounded-md bg-neutral-900 px-4 py-3 text-white disabled:opacity-50"
+        className="btn-accent w-full py-3 text-base"
       >
         {sending ? "Abriendo AZUL..." : "Pagar con tarjeta"}
       </button>
-      <p className="text-center text-xs text-neutral-500">Pago seguro procesado por AZUL (Banco Popular).</p>
+      <p className="text-center text-xs text-stone-500">Pago seguro procesado por AZUL (Banco Popular).</p>
     </form>
   );
 }

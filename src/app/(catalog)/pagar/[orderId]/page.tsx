@@ -27,11 +27,11 @@ export default async function PagarPage({ params }: { params: Promise<{ orderId:
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
   return (
-    <div className="mx-auto max-w-md">
-      <h1 className="mb-1 text-2xl font-semibold">Pagar pedido {order.codigo}</h1>
-      <p className="mb-6 text-sm text-neutral-500">Tienes 30 minutos para completar el pago; luego el pedido se cancela.</p>
+    <div className="card mx-auto max-w-md p-6 sm:p-8">
+      <h1 className="mb-1 font-display text-3xl font-semibold tracking-tight">Pagar pedido {order.codigo}</h1>
+      <p className="mb-6 text-sm text-stone-500">Tienes 30 minutos para completar el pago; luego el pedido se cancela.</p>
 
-      <div className="mb-6 rounded-lg border border-neutral-200 p-4 text-sm">
+      <div className="mb-6 card p-4 text-sm">
         <div className="flex justify-between">
           <span>Productos</span>
           <span>RD${order.subtotal.toFixed(2)}</span>
@@ -40,7 +40,7 @@ export default async function PagarPage({ params }: { params: Promise<{ orderId:
           <span>Delivery</span>
           <span>RD${order.delivery_fee.toFixed(2)}</span>
         </div>
-        <div className="mt-2 flex justify-between border-t border-neutral-100 pt-2 text-base font-medium">
+        <div className="mt-2 flex justify-between border-t border-stone-100 pt-2 text-base font-medium">
           <span>Total</span>
           <span>RD${order.total.toFixed(2)}</span>
         </div>
@@ -57,7 +57,7 @@ export default async function PagarPage({ params }: { params: Promise<{ orderId:
               type="submit"
               name="resultado"
               value="aprobado"
-              className="flex-1 rounded-md bg-neutral-900 px-4 py-2 text-sm text-white"
+              className="flex-1 btn-primary"
             >
               Simular pago aprobado
             </button>
@@ -65,7 +65,7 @@ export default async function PagarPage({ params }: { params: Promise<{ orderId:
               type="submit"
               name="resultado"
               value="rechazado"
-              className="flex-1 rounded-md border border-neutral-300 px-4 py-2 text-sm"
+              className="flex-1 btn-secondary"
             >
               Simular rechazo
             </button>
@@ -83,7 +83,7 @@ export default async function PagarPage({ params }: { params: Promise<{ orderId:
         />
       )}
 
-      <Link href={`/pedidos/${order.id}`} className="mt-6 inline-block text-sm underline">
+      <Link href={`/pedidos/${order.id}`} className="link mt-6 inline-block text-sm">
         Ver mi pedido
       </Link>
     </div>

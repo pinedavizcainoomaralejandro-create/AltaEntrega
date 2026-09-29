@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 440" role="img" aria-labelledby="t">
+  <title id="t">Fachada de una boutique caribeña con toldo de rayas y vestidos en la vitrina</title>
+  <!-- Cielo de mañana y sol -->
+  <rect width="320" height="440" fill="#fdebcb"/>
+  <circle cx="262" cy="46" r="26" fill="#f6b85a"/>
+  <!-- Lomas al fondo -->
+  <path d="M0 96c40-28 78-40 118-30s62 22 102 14 70-26 100-20v60H0z" fill="#7fb993"/>
+  <!-- Fachada -->
+  <rect x="18" y="78" width="284" height="362" fill="#f7c6b8"/>
+  <rect x="18" y="78" width="284" height="12" fill="#e8a595"/>
+  <rect x="18" y="416" width="284" height="24" fill="#e8dcc6"/>
+  <!-- Letrero -->
+  <rect x="58" y="100" width="204" height="44" rx="10" fill="#1c5136"/>
+  <text x="160" y="129" text-anchor="middle" font-family="Georgia, serif" font-size="21" font-weight="700" letter-spacing="3" fill="#fdfbf7">BOUTIQUE</text>
+  <circle cx="74" cy="122" r="4" fill="#f29e33"/>
+  <circle cx="246" cy="122" r="4" fill="#f29e33"/>
+  <!-- Toldo de rayas -->
+  <g>
+    <rect x="30" y="156" width="260" height="30" fill="#fdfbf7"/>
+    <rect x="30" y="156" width="26" height="30" fill="#e7831a"/>
+    <rect x="82" y="156" width="26" height="30" fill="#e7831a"/>
+    <rect x="134" y="156" width="26" height="30" fill="#e7831a"/>
+    <rect x="186" y="156" width="26" height="30" fill="#e7831a"/>
+    <rect x="238" y="156" width="26" height="30" fill="#e7831a"/>
+    <path d="M30 186a13 13 0 0 0 26 0a13 13 0 0 0 26 0a13 13 0 0 0 26 0a13 13 0 0 0 26 0a13 13 0 0 0 26 0a13 13 0 0 0 26 0a13 13 0 0 0 26 0a13 13 0 0 0 26 0a13 13 0 0 0 26 0a13 13 0 0 0 26 0z" fill="#fdfbf7"/>
+    <path d="M30 186a13 13 0 0 0 26 0zM82 186a13 13 0 0 0 26 0zM134 186a13 13 0 0 0 26 0zM186 186a13 13 0 0 0 26 0zM238 186a13 13 0 0 0 26 0z" fill="#e7831a"/>
+  </g>
+  <!-- Vitrina -->
+  <rect x="38" y="214" width="156" height="170" rx="6" fill="#123224"/>
+  <rect x="45" y="221" width="142" height="156" rx="3" fill="#fff7eb"/>
+  <path d="M45 221h142v34c-40 10-100 10-142 0z" fill="#fdebcb" opacity=".7"/>
+  <!-- Maniquí 1: vestido verde -->
+  <circle cx="84" cy="262" r="9" fill="#e8dcc6"/>
+  <rect x="81" y="270" width="6" height="8" fill="#e8dcc6"/>
+  <path d="M72 278h24l10 70H62z" fill="#2f7d51"/>
+  <path d="M72 278h24l3 18H69z" fill="#226541"/>
+  <circle cx="76" cy="312" r="3" fill="#aed5ba"/><circle cx="92" cy="324" r="3" fill="#aed5ba"/><circle cx="80" cy="336" r="3" fill="#aed5ba"/>
+  <rect x="82" y="348" width="4" height="22" fill="#843e16"/>
+  <rect x="72" y="368" width="24" height="4" rx="2" fill="#843e16"/>
+  <!-- Maniquí 2: vestido naranja -->
+  <circle cx="146" cy="258" r="9" fill="#e8dcc6"/>
+  <rect x="143" y="266" width="6" height="8" fill="#e8dcc6"/>
+  <path d="M134 274h24l4 22 14 52h-60l14-52z" fill="#e7831a"/>
+  <path d="M130 296h32" stroke="#c96612" stroke-width="4"/>
+  <rect x="144" y="348" width="4" height="22" fill="#843e16"/>
+  <rect x="134" y="368" width="24" height="4" rx="2" fill="#843e16"/>
+  <!-- Bolso -->
+  <rect x="104" y="340" width="22" height="18" rx="4" fill="#c96612"/>
+  <path d="M108 340a7 7 0 0 1 14 0" fill="none" stroke="#c96612" stroke-width="3"/>
+  <!-- Puerta -->
+  <rect x="210" y="214" width="74" height="202" rx="4" fill="#17402c"/>
+  <rect x="220" y="226" width="54" height="120" rx="3" fill="#aed5ba" opacity=".55"/>
+  <path d="M228 236l20-6M232 250l26-8" stroke="#fdfbf7" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+  <circle cx="272" cy="368" r="4" fill="#f6b85a"/>
+  <rect x="222" y="356" width="40" height="16" rx="3" fill="#fdfbf7"/>
+  <text x="242" y="368" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" font-weight="700" fill="#1c5136">ABIERTO</text>
+  <!-- Macetas -->
+  <path d="M8 416h26l-4 24H12z" fill="#a34d13"/>
+  <path d="M21 416c-8-14-12-26-4-36 4 12 6 22 4 36zM21 416c4-16 12-24 22-26-6 10-12 18-22 26zM21 416c-6-10-16-14-24-12 8 4 16 8 24 12z" fill="#2f7d51"/>
+  <path d="M292 416h26l-4 24h-18z" fill="#a34d13"/>
+  <path d="M305 416c-6-16-4-30 6-38 2 14 0 26-6 38zM305 416c-10-10-20-14-28-10 10 2 18 6 28 10z" fill="#226541"/>
+</svg>

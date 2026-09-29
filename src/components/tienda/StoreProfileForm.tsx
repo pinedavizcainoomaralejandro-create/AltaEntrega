@@ -13,7 +13,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="rounded-md bg-neutral-900 px-4 py-2 text-sm text-white disabled:opacity-50"
+      className="btn-primary"
     >
       {pending ? "Guardando..." : "Guardar cambios"}
     </button>
@@ -30,50 +30,50 @@ export default function StoreProfileForm({ store }: { store: StoreRow }) {
       className="flex max-w-md flex-col gap-4"
     >
       <div>
-        <span className="mb-1 block text-sm font-medium">Estado</span>
-        <span className="inline-block rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
+        <span className="label">Estado</span>
+        <span className="inline-block rounded-full bg-monte-100 px-3 py-1 text-xs font-medium text-monte-800">
           {store.estado}
         </span>
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium">Nombre de la tienda</label>
+        <label className="label">Nombre de la tienda</label>
         <input
           name="nombre"
           required
           readOnly
           defaultValue={store.nombre}
-          className="w-full rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2 text-neutral-600"
+          className="input"
         />
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium">Dirección</label>
+        <label className="label">Dirección</label>
         <input
           name="direccion"
           required
           readOnly
           defaultValue={store.direccion}
-          className="w-full rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2 text-neutral-600"
+          className="input"
         />
-        <p className="mt-1 text-xs text-neutral-500">
+        <p className="mt-1 text-xs text-stone-500">
           El nombre y la dirección fueron verificados por un administrador. Para cambiarlos, contacta a soporte.
         </p>
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium">Categoría</label>
+        <label className="label">Categoría</label>
         <input
           name="categoria"
           required
           defaultValue={state.values?.categoria ?? store.categoria}
-          className="w-full rounded-md border border-neutral-300 px-3 py-2"
+          className="input"
         />
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium">
-          Logo <span className="font-normal text-neutral-500">(JPG, PNG o WebP, máx. 5 MB)</span>{" "}
+        <label className="label">
+          Logo <span className="font-normal text-stone-500">(JPG, PNG o WebP, máx. 5 MB)</span>{" "}
           {store.logo && "— deja vacío para conservar el actual"}
         </label>
         {store.logo && (
