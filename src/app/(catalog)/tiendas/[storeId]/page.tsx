@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { escapeLike } from "@/lib/validation";
 import type { CatalogProduct } from "@/types/database";
+import { etiquetasVariante, getCategoria } from "@/lib/categories";
 import AddToCartButton from "@/components/catalog/AddToCartButton";
 
 export default async function StorePage({
@@ -37,12 +38,14 @@ export default async function StorePage({
   const { data } = await productsQuery;
   const products = data as CatalogProduct[] | null;
 
+  const variante = etiquetasVariante(store.categoria);
+  const ilustracion = getCategoria(store.categoria)?.ilustracion ?? "/images/boutique-percha.svg";
   const formatPrecio = (n: number) => n.toLocaleString("es-DO", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   return (
     <div className="flex flex-col gap-8">
       <Link href="/" className="link w-fit text-sm">
-        ← Todas las boutiques
+        ← Todos los negocios
       </Link>
 
       <section className="card overflow-hidden">
@@ -62,7 +65,7 @@ export default async function StorePage({
             <div className="pb-1">
               <h1 className="font-display text-3xl font-semibold tracking-tight">{store.nombre}</h1>
               <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-stone-500">
-                <span className="badge bg-monte-50 text-monte-700">{store.categoria}</span>
+                <span className="badge bg-monte-50 text-monte-700">{getCategoria(store.categoria)?.nombre ?? store.categoria}</span>
                 <span className="inline-flex items-center gap-1">
                   <MapPinIcon />
                   {store.direccion}
@@ -77,7 +80,7 @@ export default async function StorePage({
               type="search"
               name="q"
               defaultValue={q}
-              placeholder="Buscar en esta tienda..."
+              placeholder="Buscar en este negocio..."
               className="w-full bg-transparent py-2.5 text-sm focus:outline-none"
             />
             <button type="submit" className="btn-primary btn-sm m-1">
@@ -89,9 +92,9 @@ export default async function StorePage({
 
       {!products || products.length === 0 ? (
         <div className="card flex flex-col items-center gap-3 px-6 py-12 text-center">
-          <Image src="/images/boutique-percha.svg" alt="" width={220} height={160} unoptimized />
+          <Image src={ilustracion} alt="" width={220} height={160} unoptimized className="rounded-2xl" />
           <p className="font-display text-xl font-semibold">
-            {q ? `No encontramos "${q}" en esta tienda` : "Esta tienda está preparando su vitrina"}
+            {q ? `No encontramos "${q}" en este negocio` : "Este negocio está preparando su menú y vitrina"}
           </p>
           <p className="text-sm text-stone-500">
             {q ? "Prueba con otra palabra." : "Vuelve pronto para ver sus productos."}
@@ -113,7 +116,7 @@ export default async function StorePage({
                   />
                 ) : (
                   <div className="flex h-full items-center justify-center p-6">
-                    <Image src="/images/boutique-percha.svg" alt="" width={160} height={116} unoptimized className="opacity-70" />
+                    <Image src={ilustracion} alt="" width={160} height={116} unoptimized className="rounded-xl opacity-80" />
                   </div>
                 )}
                 {p.agotado && (
@@ -123,7 +126,7 @@ export default async function StorePage({
               <div className="flex flex-1 flex-col gap-1 p-4">
                 <p className="line-clamp-2 font-medium text-stone-900">{p.nombre}</p>
                 {(p.talla || p.color) && (
-                  <p className="text-xs text-stone-500">{[p.talla && `Talla ${p.talla}`, p.color].filter(Boolean).join(" · ")}</p>
+                  <p className="text-xs text-stone-500">{[p.talla && `${variante.talla}: ${p.talla}`, p.color && `${variante.color}: ${p.color}`].filter(Boolean).join(" · ")}</p>
                 )}
                 <p className="mt-1 font-display text-lg font-semibold text-monte-800">RD${formatPrecio(p.precio)}</p>
                 <div className="mt-auto pt-3">

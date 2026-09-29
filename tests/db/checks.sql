@@ -38,7 +38,7 @@ insert into public.users (id, email, rol, nombre, telefono) values
   ('00000000-0000-0000-0000-0000000000d1', 'd1@x.com', 'courier', 'Rep1', null),
   ('00000000-0000-0000-0000-0000000000d2', 'd2@x.com', 'courier', 'Rep2', null);
 insert into public.stores (id, user_id, nombre, direccion, categoria, estado) values
-  ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-00000000000b', 'Boutique', 'Calle Duarte 1', 'Ropa', 'aprobado');
+  ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-00000000000b', 'Boutique', 'Calle Duarte 1', 'boutique', 'aprobado');
 insert into public.couriers (id, user_id, vehiculo, documento_identidad, matricula, estado, disponible) values
   ('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-0000000000d1', 'moto', '11111111111', 'K111111', 'aprobado', true),
   ('00000000-0000-0000-0000-0000000000e2', '00000000-0000-0000-0000-0000000000d2', 'moto', '22222222222', 'K222222', 'rechazado', false);
@@ -191,7 +191,8 @@ end $$;
 -- La tienda aprobada no cambia nombre ni dirección, sí la categoría
 select pg_temp.as_user('00000000-0000-0000-0000-00000000000b');
 select pg_temp.expect_error($$update public.stores set nombre = 'Otra marca' where user_id = auth.uid()$$, 'ya fueron verificados');
-update public.stores set categoria = 'Calzado' where user_id = auth.uid();
+update public.stores set categoria = 'reposteria' where user_id = auth.uid();
+select pg_temp.expect_error($$update public.stores set categoria = 'ferreteria' where user_id = auth.uid()$$, 'stores_categoria_check');
 
 -- Límites de products y "agotado" en cualquier update
 select pg_temp.expect_error(

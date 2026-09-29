@@ -4,7 +4,7 @@ import HomeLink from "@/components/HomeLink";
 
 /**
  * Pantallas de acceso (login, registro, contraseña): formulario a la izquierda
- * y, a la derecha, las lomas de Villa Altagracia con ilustraciones de boutique.
+ * y, a la derecha, las lomas de Villa Altagracia con ilustraciones de sus negocios.
  */
 export default function AuthShell({
   title,
@@ -58,19 +58,19 @@ export default function AuthShell({
         <div className="absolute inset-0 bg-gradient-to-t from-monte-950/90 via-monte-950/30 to-monte-950/10" />
 
         <div className="absolute right-10 top-10 flex gap-4">
-          <figure className="relative h-60 w-44 rotate-[-4deg] overflow-hidden rounded-2xl border-4 border-white bg-white shadow-2xl">
+          <figure className="relative mt-4 h-40 w-56 rotate-[-5deg] overflow-hidden rounded-2xl border-4 border-white bg-white shadow-2xl">
             <Image
-              src="/images/boutique-fachada.svg"
-              alt="Ilustración de una boutique con toldo de rayas"
+              src="/images/puesto-empanadas.svg"
+              alt="Ilustración de un puesto de empanadas"
               fill
               unoptimized
               className="object-cover"
             />
           </figure>
-          <figure className="relative mt-12 h-44 w-60 rotate-[3deg] overflow-hidden rounded-2xl border-4 border-white bg-white shadow-2xl">
+          <figure className="relative mt-16 h-56 w-40 rotate-[4deg] overflow-hidden rounded-2xl border-4 border-white bg-white shadow-2xl">
             <Image
-              src="/images/boutique-percha.svg"
-              alt="Ilustración de una percha con ropa y una bolsa de AltaEntrega"
+              src="/images/boutique-fachada.svg"
+              alt="Ilustración de una boutique con toldo de rayas"
               fill
               unoptimized
               className="object-cover"
@@ -81,11 +81,11 @@ export default function AuthShell({
         <div className="absolute inset-x-10 bottom-10 text-white">
           <span className="badge bg-sol-400/90 text-monte-950">Villa Altagracia · San Cristóbal</span>
           <p className="mt-4 max-w-md font-display text-4xl font-semibold leading-tight text-balance">
-            Las boutiques de tu pueblo, en la puerta de tu casa.
+            Lo mejor de tu pueblo, en la puerta de tu casa.
           </p>
           <p className="mt-3 max-w-md text-sm text-monte-100">
-            Compra en las tiendas de Villa Altagracia, paga seguro con tarjeta y recibe tu pedido con un repartidor
-            local.
+            Pide en los restaurantes, puestos de empanadas, cafeterías, panaderías, reposterías y boutiques de Villa
+            Altagracia, y recibe tu pedido con un repartidor local.
           </p>
           <p className="mt-6 text-[10px] text-white/50">
             Foto: Autopista Duarte en Villa Altagracia (Markocortesa2, CC0, Wikimedia Commons).

@@ -29,7 +29,7 @@ export default async function PedidosPage() {
           <h1 className="font-display text-3xl font-semibold tracking-tight">Todavía no tienes pedidos</h1>
           <p className="text-sm text-stone-500">Cuando compres, aquí podrás seguir tu pedido en vivo.</p>
           <Link href="/" className="btn-primary mt-2">
-            Explorar tiendas
+            Explorar negocios
           </Link>
         </div>
       </div>

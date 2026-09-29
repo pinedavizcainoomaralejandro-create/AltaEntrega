@@ -31,7 +31,7 @@ export default function LoginForm() {
   const redirectTo = params.get("redirect") ?? "";
 
   return (
-    <AuthShell title="Bienvenido de vuelta" subtitle="Entra para comprar en las boutiques de Villa Altagracia o gestionar tu tienda.">
+    <AuthShell title="Bienvenido de vuelta" subtitle="Entra para pedir en los negocios de Villa Altagracia o gestionar el tuyo.">
 
       {checkEmail && (
         <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-800">

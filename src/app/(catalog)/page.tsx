@@ -3,14 +3,17 @@ import Link from "next/link";
 import { MapPinIcon, SearchIcon } from "@/components/ui/icons";
 import { createClient } from "@/lib/supabase/server";
 import { escapeLike, quotePostgrestValue } from "@/lib/validation";
+import { CATEGORIAS, categoriasQueCoinciden, getCategoria } from "@/lib/categories";
 
 export default async function CatalogHomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; categoria?: string }>;
 }) {
   const supabase = await createClient();
-  const q = ((await searchParams).q ?? "").trim();
+  const params = await searchParams;
+  const q = (params.q ?? "").trim();
+  const categoria = getCategoria(params.categoria);
 
   let query = supabase
     .from("stores")
@@ -18,21 +21,27 @@ export default async function CatalogHomePage({
     .eq("estado", "aprobado")
     .order("nombre");
 
+  if (categoria) query = query.eq("categoria", categoria.slug);
+
   if (q) {
+    // Busca por nombre del negocio y por tipo de negocio ("pan", "ropa", "café"...).
     const quoted = quotePostgrestValue(`%${escapeLike(q)}%`);
-    query = query.or(`nombre.ilike.${quoted},categoria.ilike.${quoted}`);
+    const slugs = categoriasQueCoinciden(q);
+    query = query.or(
+      [`nombre.ilike.${quoted}`, slugs.length ? `categoria.in.(${slugs.join(",")})` : null].filter(Boolean).join(",")
+    );
   }
 
   const { data: stores } = await query;
 
   const pasos = [
     {
-      img: "/images/boutique-fachada.svg",
-      titulo: "Elige tu boutique",
-      texto: "Tiendas de Villa Altagracia verificadas por nuestro equipo.",
+      img: "/images/puesto-empanadas.svg",
+      titulo: "Elige un negocio del pueblo",
+      texto: "Restaurantes, empanadas, cafeterías, panaderías, reposterías y boutiques verificados.",
     },
     {
-      img: "/images/boutique-percha.svg",
+      img: "/images/restaurante.svg",
       titulo: "Arma tu pedido y paga seguro",
       texto: "Pagas con tarjeta en la página segura de AZUL (Banco Popular).",
     },
@@ -57,10 +66,11 @@ export default async function CatalogHomePage({
         <div className="absolute inset-0 -z-10 bg-gradient-to-r from-monte-950/90 via-monte-950/65 to-monte-950/20" />
         <span className="badge bg-sol-400/90 text-monte-950">Villa Altagracia · San Cristóbal</span>
         <h1 className="mt-5 max-w-2xl font-display text-4xl font-semibold leading-tight text-white text-balance sm:text-5xl">
-          Las boutiques de tu pueblo, en la puerta de tu casa.
+          Lo mejor de Villa Altagracia, en la puerta de tu casa.
         </h1>
         <p className="mt-4 max-w-xl text-base text-monte-100 sm:text-lg">
-          Ropa, calzado y accesorios de las tiendas de Villa Altagracia, con pago seguro y delivery local.
+          La comida de sus restaurantes y puestos de empanadas, el café, el pan y los dulces del pueblo, y la ropa de
+          sus boutiques. Con pago seguro y delivery local.
         </p>
 
         <form className="mt-8 flex max-w-xl flex-col gap-2 rounded-2xl bg-white p-2 shadow-2xl sm:flex-row">
@@ -70,28 +80,60 @@ export default async function CatalogHomePage({
               type="search"
               name="q"
               defaultValue={q}
-              placeholder="Busca una tienda o categoría: ropa, calzado..."
+              placeholder="¿Qué se te antoja? Empanadas, café, pan, ropa..."
               className="w-full bg-transparent py-2.5 text-stone-900 placeholder:text-stone-400 focus:outline-none"
             />
           </label>
           <button type="submit" className="btn-accent px-6">
             Buscar
           </button>
+          {categoria && <input type="hidden" name="categoria" value={categoria.slug} />}
         </form>
       </section>
 
-      <section id="tiendas">
+      <nav aria-label="Tipos de negocio" className="-mx-4 -mt-6 flex gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-7 sm:px-0">
+        <Link
+          href="/#negocios"
+          className={`flex min-w-24 flex-col items-center gap-2 rounded-2xl border p-3 text-center text-xs font-semibold transition ${
+            !categoria ? "border-monte-600 bg-monte-700 text-white" : "border-stone-200 bg-white text-stone-700 hover:border-monte-300"
+          }`}
+        >
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-arena-200 font-display text-lg text-monte-800">
+            Todo
+          </span>
+          Todos
+        </Link>
+        {CATEGORIAS.map((c) => {
+          const activa = categoria?.slug === c.slug;
+          return (
+            <Link
+              key={c.slug}
+              href={`/?categoria=${c.slug}#negocios`}
+              className={`flex min-w-24 flex-col items-center gap-2 rounded-2xl border p-3 text-center text-xs font-semibold transition ${
+                activa ? "border-monte-600 bg-monte-700 text-white" : "border-stone-200 bg-white text-stone-700 hover:border-monte-300"
+              }`}
+            >
+              <span className="relative h-14 w-14 overflow-hidden rounded-full bg-arena-200 ring-2 ring-white">
+                <Image src={c.ilustracion} alt="" fill unoptimized className="object-cover" />
+              </span>
+              {c.plural}
+            </Link>
+          );
+        })}
+      </nav>
+
+      <section id="negocios" className="scroll-mt-24">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-2">
           <div>
             <h2 className="font-display text-3xl font-semibold tracking-tight">
-              {q ? `Resultados para "${q}"` : "Boutiques en Villa Altagracia"}
+              {q ? `Resultados para "${q}"` : categoria ? `${categoria.plural} en Villa Altagracia` : "Negocios en Villa Altagracia"}
             </h2>
             <p className="mt-1 text-stone-500">
-              {q ? "Tiendas que coinciden con tu búsqueda." : "Tiendas locales verificadas, listas para tu pedido."}
+              {q ? "Negocios que coinciden con tu búsqueda." : "Negocios locales verificados, listos para tu pedido."}
             </p>
           </div>
-          {q && (
-            <Link href="/" className="link text-sm">
+          {(q || categoria) && (
+            <Link href="/#negocios" className="link text-sm">
               Ver todas
             </Link>
           )}
@@ -99,18 +141,29 @@ export default async function CatalogHomePage({
 
         {!stores || stores.length === 0 ? (
           <div className="card flex flex-col items-center gap-4 px-6 py-12 text-center">
-            <Image src="/images/boutique-fachada.svg" alt="" width={120} height={165} unoptimized />
+            <Image
+              src={categoria?.ilustracion ?? "/images/puesto-empanadas.svg"}
+              alt=""
+              width={220}
+              height={160}
+              unoptimized
+              className="rounded-2xl"
+            />
             <p className="font-display text-xl font-semibold">
-              {q ? `No encontramos tiendas para "${q}"` : "Pronto verás aquí las boutiques del pueblo"}
+              {q
+                ? `No encontramos negocios para "${q}"`
+                : categoria
+                  ? `Todavía no hay ${categoria.plural.toLowerCase()} en AltaEntrega`
+                  : "Pronto verás aquí los negocios del pueblo"}
             </p>
             <p className="max-w-md text-sm text-stone-500">
               {q
-                ? "Prueba con otra palabra, como ropa, calzado o el nombre de la tienda."
-                : "Estamos sumando las primeras tiendas de Villa Altagracia."}
+                ? "Prueba con otra palabra, como empanadas, café, pan o el nombre del negocio."
+                : "Estamos sumando los primeros negocios de Villa Altagracia."}
             </p>
             {!q && (
               <Link href="/register" className="btn-primary">
-                ¿Tienes una boutique? Regístrala gratis
+                ¿Tienes un negocio? Regístralo gratis
               </Link>
             )}
           </div>
@@ -140,7 +193,9 @@ export default async function CatalogHomePage({
                   </div>
                   <div className="min-w-0">
                     <p className="truncate font-display text-xl font-semibold group-hover:text-monte-700">{s.nombre}</p>
-                    <span className="badge mt-1 bg-monte-50 text-monte-700">{s.categoria}</span>
+                    <span className="badge mt-1 bg-monte-50 text-monte-700">
+                      {getCategoria(s.categoria)?.nombre ?? s.categoria}
+                    </span>
                     <p className="mt-3 flex items-center gap-1.5 truncate text-sm text-stone-500">
                       <MapPinIcon />
                       {s.direccion}

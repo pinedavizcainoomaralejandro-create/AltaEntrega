@@ -11,7 +11,7 @@ const initialState: AuthFormState = { error: null };
 
 const ROLES = [
   { value: "cliente", label: "Cliente" },
-  { value: "tienda", label: "Tienda" },
+  { value: "tienda", label: "Negocio" },
   { value: "courier", label: "Delivery" },
 ] as const;
 
@@ -34,7 +34,7 @@ export default function RegisterPage() {
   return (
     <AuthShell
       title="Crea tu cuenta"
-      subtitle="Compra en las boutiques de tu pueblo, vende en tu tienda o reparte pedidos. Tiendas y repartidores pasan por una aprobación rápida."
+      subtitle="Pide comida y compras en los negocios de tu pueblo, vende en tu negocio o reparte pedidos. Negocios y repartidores pasan por una aprobación rápida."
     >
 
       <form action={formAction} className="flex flex-col gap-4">

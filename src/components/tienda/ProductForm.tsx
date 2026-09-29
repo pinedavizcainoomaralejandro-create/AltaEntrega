@@ -3,6 +3,7 @@
 import { useEffect, useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import type { ProductRow } from "@/types/database";
+import { etiquetasVariante } from "@/lib/categories";
 import type { ProductFormState } from "@/app/dashboard/tienda/productos/actions";
 
 const initialState: ProductFormState = { error: null };
@@ -25,13 +26,16 @@ export default function ProductForm({
   product,
   onDone,
   submitLabel,
+  categoria,
 }: {
   action: (state: ProductFormState, formData: FormData) => Promise<ProductFormState>;
   product?: ProductRow;
   onDone: () => void;
   submitLabel: string;
+  categoria: string;
 }) {
   const [state, formAction] = useActionState(action, initialState);
+  const variante = etiquetasVariante(categoria);
 
   useEffect(() => {
     if (state.success) onDone();
@@ -91,17 +95,17 @@ export default function ProductForm({
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="label">Talla</label>
+          <label className="label">{variante.talla}</label>
           <input
-            maxLength={40} name="talla"
+            maxLength={40} name="talla" placeholder={variante.tallaEjemplo}
             defaultValue={state.values?.talla ?? product?.talla ?? ""}
             className="input"
           />
         </div>
         <div>
-          <label className="label">Color</label>
+          <label className="label">{variante.color}</label>
           <input
-            maxLength={40} name="color"
+            maxLength={40} name="color" placeholder={variante.colorEjemplo}
             defaultValue={state.values?.color ?? product?.color ?? ""}
             className="input"
           />

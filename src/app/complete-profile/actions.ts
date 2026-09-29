@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { friendlyDbError } from "@/lib/errors";
 import { isValidMatricula, normalizeCedula, normalizeMatricula } from "@/lib/validation";
+import { isCategoriaSlug } from "@/lib/categories";
 
 export type ProfileFormState = { error: string | null } & FormValues;
 
@@ -17,10 +18,13 @@ async function createStoreProfileInner(
   const categoria = String(formData.get("categoria") ?? "").trim();
 
   if (!nombre || !direccion || !categoria) {
-    return { error: "Completa nombre, dirección y categoría de la tienda." };
+    return { error: "Completa el nombre, la dirección y el tipo de negocio." };
   }
-  if (nombre.length > 80 || direccion.length > 200 || categoria.length > 60) {
-    return { error: "Algún campo es demasiado largo (nombre 80, dirección 200, categoría 60 caracteres)." };
+  if (!isCategoriaSlug(categoria)) {
+    return { error: "Elige el tipo de negocio." };
+  }
+  if (nombre.length > 80 || direccion.length > 200) {
+    return { error: "Algún campo es demasiado largo (nombre 80 y dirección 200 caracteres)." };
   }
 
   const supabase = await createClient();

@@ -76,9 +76,9 @@ export default function CarritoPage() {
         <div className="card mx-auto flex max-w-lg flex-col items-center gap-3 px-6 py-12 text-center">
           <Image src="/images/boutique-percha.svg" alt="" width={220} height={160} unoptimized />
           <h1 className="font-display text-3xl font-semibold tracking-tight">Tu carrito está vacío</h1>
-          <p className="text-sm text-stone-500">Date una vuelta por las boutiques de Villa Altagracia.</p>
+          <p className="text-sm text-stone-500">Date una vuelta por los negocios de Villa Altagracia.</p>
           <Link href="/" className="btn-primary mt-2">
-            Explorar tiendas
+            Explorar negocios
           </Link>
         </div>
       </div>

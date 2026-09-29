@@ -10,5 +10,5 @@ export default async function ProductosPage() {
     .eq("store_id", store.id)
     .order("created_at", { ascending: false });
 
-  return <ProductManager products={products ?? []} />;
+  return <ProductManager products={products ?? []} categoria={store.categoria} />;
 }

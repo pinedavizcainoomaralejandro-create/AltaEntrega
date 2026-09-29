@@ -4,6 +4,7 @@ import { useFormStatus } from "react-dom";
 import { useActionState } from "react";
 import { createStoreProfileAction, type ProfileFormState } from "../actions";
 import AuthShell from "@/components/brand/AuthShell";
+import CategoryPicker from "@/components/tienda/CategoryPicker";
 
 const initialState: ProfileFormState = { error: null };
 
@@ -27,7 +28,7 @@ export default function StoreRequestForm({ initial }: { initial: StoreRequestIni
 
   return (
     <AuthShell
-      title={initial ? "Corrige los datos de tu tienda" : "Cuéntanos de tu boutique"}
+      title={initial ? "Corrige los datos de tu negocio" : "Cuéntanos de tu negocio"}
       subtitle={
         initial
           ? "Tu solicitud fue rechazada. Revisa los datos y envíala de nuevo para que un administrador la revise."
@@ -36,19 +37,16 @@ export default function StoreRequestForm({ initial }: { initial: StoreRequestIni
     >
       <form action={formAction} className="flex flex-col gap-4">
         <div>
-          <label htmlFor="nombre" className="label">Nombre de la tienda</label>
+          <label htmlFor="nombre" className="label">Nombre del negocio</label>
           <input id="nombre" name="nombre" required maxLength={80} defaultValue={state.values?.nombre ?? initial?.nombre} className="input" />
         </div>
 
         <div>
           <label htmlFor="direccion" className="label">Dirección</label>
-          <input id="direccion" name="direccion" required maxLength={200} defaultValue={state.values?.direccion ?? initial?.direccion} placeholder="Villa Altagracia..." className="input" />
+          <input id="direccion" name="direccion" required maxLength={200} defaultValue={state.values?.direccion ?? initial?.direccion} placeholder="Calle, número, sector (Villa Altagracia)" className="input" />
         </div>
 
-        <div>
-          <label htmlFor="categoria" className="label">Categoría</label>
-          <input id="categoria" name="categoria" required maxLength={60} defaultValue={state.values?.categoria ?? initial?.categoria} placeholder="Ropa, calzado, accesorios..." className="input" />
-        </div>
+        <CategoryPicker defaultValue={state.values?.categoria ?? initial?.categoria} />
 
         {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
 

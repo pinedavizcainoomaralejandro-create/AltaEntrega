@@ -84,12 +84,12 @@ export default async function CatalogLayout({ children }: { children: React.Reac
             <div>
               <Logo tone="light" />
               <p className="mt-3 max-w-sm text-sm text-monte-200">
-                Las boutiques de Villa Altagracia, con pago seguro y delivery local.
+                Restaurantes, empanadas, café, pan, dulces y ropa de Villa Altagracia, con pago seguro y delivery local.
               </p>
             </div>
             <div className="flex flex-col gap-2 text-sm">
               <Link href="/register" className="hover:text-white">
-                ¿Tienes una boutique? Véndela aquí
+                ¿Tienes un negocio? Vende aquí
               </Link>
               <Link href="/register" className="hover:text-white">
                 Trabaja como repartidor

@@ -31,7 +31,7 @@ export default function Logo({
           AltaEntrega
         </span>
         <span className={`hidden text-[11px] font-medium sm:block ${tone === "light" ? "text-monte-100" : "text-monte-700"}`}>
-          Boutiques de Villa Altagracia
+          Lo mejor de Villa Altagracia
         </span>
       </span>
     </Link>

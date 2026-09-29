@@ -51,7 +51,7 @@ function ReactivateButton({ productId }: { productId: string }) {
   );
 }
 
-export default function ProductManager({ products }: { products: ProductRow[] }) {
+export default function ProductManager({ products, categoria }: { products: ProductRow[]; categoria: string }) {
   const [modal, setModal] = useState<null | { mode: "create" } | { mode: "edit"; product: ProductRow }>(null);
 
   return (
@@ -131,12 +131,14 @@ export default function ProductManager({ products }: { products: ProductRow[] })
             </h3>
             {modal.mode === "create" ? (
               <ProductForm
+                categoria={categoria}
                 action={createProductAction}
                 onDone={() => setModal(null)}
                 submitLabel="Crear producto"
               />
             ) : (
               <ProductForm
+                categoria={categoria}
                 action={updateProductAction}
                 product={modal.product}
                 onDone={() => setModal(null)}

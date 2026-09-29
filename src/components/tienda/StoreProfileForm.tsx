@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import type { StoreRow } from "@/types/database";
+import CategoryPicker from "./CategoryPicker";
 import { updateStoreProfileAction, type StoreProfileFormState } from "@/app/dashboard/tienda/perfil/actions";
 
 const initialState: StoreProfileFormState = { error: null };
@@ -37,7 +38,7 @@ export default function StoreProfileForm({ store }: { store: StoreRow }) {
       </div>
 
       <div>
-        <label className="label">Nombre de la tienda</label>
+        <label className="label">Nombre del negocio</label>
         <input
           name="nombre"
           required
@@ -61,15 +62,7 @@ export default function StoreProfileForm({ store }: { store: StoreRow }) {
         </p>
       </div>
 
-      <div>
-        <label className="label">Categoría</label>
-        <input
-          name="categoria"
-          required
-          defaultValue={state.values?.categoria ?? store.categoria}
-          className="input"
-        />
-      </div>
+      <CategoryPicker defaultValue={state.values?.categoria ?? store.categoria} />
 
       <div>
         <label className="label">

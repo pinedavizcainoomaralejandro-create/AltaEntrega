@@ -3,6 +3,7 @@
 import { attachValues, type FormValues } from "@/lib/formValues";
 import { revalidatePath } from "next/cache";
 import { friendlyDbError } from "@/lib/errors";
+import { isCategoriaSlug } from "@/lib/categories";
 import { requireOwnStore } from "@/lib/supabase/current-store";
 import { uploadStoreFile, deleteStoreFile, validateImageFile } from "@/lib/supabase/storage";
 
@@ -14,8 +15,7 @@ async function updateStoreProfileInner(
 ): Promise<StoreProfileFormState> {
   const categoria = String(formData.get("categoria") ?? "").trim();
 
-  if (!categoria) return { error: "Completa la categoría." };
-  if (categoria.length > 60) return { error: "La categoría es demasiado larga (máximo 60 caracteres)." };
+  if (!isCategoriaSlug(categoria)) return { error: "Elige el tipo de negocio." };
 
   const { supabase, store } = await requireOwnStore();
 

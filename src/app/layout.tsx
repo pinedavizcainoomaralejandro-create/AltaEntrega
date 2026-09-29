@@ -9,10 +9,10 @@ const display = Fraunces({ subsets: ["latin"], variable: "--font-display", displ
 
 export const metadata: Metadata = {
   title: {
-    default: "AltaEntrega · Boutiques de Villa Altagracia",
+    default: "AltaEntrega · Negocios de Villa Altagracia",
     template: "%s · AltaEntrega",
   },
-  description: "Las boutiques de Villa Altagracia, en la puerta de tu casa.",
+  description: "Restaurantes, empanadas, cafeterías, panaderías, reposterías y boutiques de Villa Altagracia, en la puerta de tu casa.",
 };
 
 export default function RootLayout({

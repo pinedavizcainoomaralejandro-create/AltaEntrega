@@ -6,6 +6,7 @@ import PaymentsAdmin from "@/components/admin/PaymentsAdmin";
 import ApprovalActions from "@/components/admin/ApprovalActions";
 import { ORDER_STATUS_LABEL } from "@/lib/orderStatus";
 import PanelHeader from "@/components/brand/PanelHeader";
+import { getCategoria } from "@/lib/categories";
 import { formatFecha } from "@/lib/format";
 
 const ORDERS_PAGE_SIZE = 50;
@@ -132,7 +133,7 @@ export default async function AdminPage({
                   <div className="min-w-0">
                     <p className="font-medium">{s.nombre}</p>
                     <p className="text-sm text-stone-500">
-                      {s.categoria} · {s.direccion}
+                      {getCategoria(s.categoria)?.nombre ?? s.categoria} · {s.direccion}
                     </p>
                     <p className="text-xs text-stone-400">
                       Solicitado por {owner?.nombre ?? "—"} ({owner?.email ?? "—"}
