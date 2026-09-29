@@ -1,7 +1,12 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { dispatchPayouts } from "./payouts";
 
-/** Registra un pago aprobado. Devuelve "pagado" o "reembolso_pendiente" (si el pedido ya había expirado). */
+/**
+ * Registra un pago aprobado (solo el monto de los productos; el delivery se
+ * paga en efectivo). Devuelve "pagado" o "reembolso_pendiente" si el pedido
+ * ya había expirado.
+ */
 export async function recordApprovedPayment(params: {
   orderId: string;
   amountCentavos: number;
@@ -16,6 +21,9 @@ export async function recordApprovedPayment(params: {
     p_referencia: params.reference,
   });
   if (error) throw error;
+
+  // En el mismo momento del cobro: transferencias al negocio y a ganancias.
+  if (data === "pagado") await dispatchPayouts(params.orderId);
   return data;
 }
 

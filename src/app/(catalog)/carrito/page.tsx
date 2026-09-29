@@ -125,16 +125,16 @@ export default function CarritoPage() {
       </div>
 
       <div className="mb-6 flex flex-col gap-1 text-sm">
-        <div className="flex justify-between">
-          <span>Productos</span>
+        <div className="flex justify-between text-base font-semibold">
+          <span>Pagas ahora con tarjeta</span>
           <span>RD${cart.total.toFixed(2)}</span>
         </div>
-        <div className="flex justify-between">
-          <span>Delivery</span>
+        <div className="flex justify-between text-stone-600">
+          <span>Delivery, en efectivo al recibir</span>
           <span>{deliveryFee === null ? "..." : `RD$${deliveryFee.toFixed(2)}`}</span>
         </div>
-        <div className="mt-1 flex justify-between border-t border-stone-100 pt-2 text-lg font-medium">
-          <span>Total</span>
+        <div className="mt-1 flex justify-between border-t border-stone-100 pt-2 text-stone-500">
+          <span>Total del pedido</span>
           <span>RD${(cart.total + (deliveryFee ?? 0)).toFixed(2)}</span>
         </div>
       </div>
@@ -161,7 +161,7 @@ export default function CarritoPage() {
         </div>
 
         <p className="text-xs text-stone-500">
-          Pagas con tarjeta en el siguiente paso, en la página segura de AZUL.
+          Los productos los pagas con tarjeta en el siguiente paso, en la página segura de AZUL. El delivery se lo pagas en efectivo al repartidor.
         </p>
 
         {state?.error && <p className="text-sm text-red-600">{state.error}</p>}

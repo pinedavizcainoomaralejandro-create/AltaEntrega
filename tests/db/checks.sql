@@ -90,7 +90,7 @@ begin
   end if;
 end $$;
 select pg_temp.expect_error(
-  format('select public.confirm_payment(%L, 17100, %L, %L)', current_setting('test.order1'), 'X', 'Y'),
+  format('select public.confirm_payment(%L, 2100, %L, %L)', current_setting('test.order1'), 'X', 'Y'),
   'permission denied');
 
 -- Mientras espera el pago, la tienda no puede confirmarlo
@@ -108,9 +108,29 @@ set role service_role;
 select pg_temp.expect_error(
   format('select public.confirm_payment(%L, 999, %L, %L)', current_setting('test.order1'), 'X', 'Y'),
   'no coincide');
-select public.confirm_payment(current_setting('test.order1')::uuid, 17100, 'AUT1', 'RRN1');
-select public.confirm_payment(current_setting('test.order1')::uuid, 17100, 'AUT1', 'RRN1');
+-- En línea solo se cobran los productos (21.00); el delivery es en efectivo.
+select public.confirm_payment(current_setting('test.order1')::uuid, 2100, 'AUT1', 'RRN1');
+select public.confirm_payment(current_setting('test.order1')::uuid, 2100, 'AUT1', 'RRN1');
 set role authenticated;
+
+-- Al instante: la tienda tiene 20.00 de saldo y la plataforma 1.00 de comisión
+-- (una sola vez aunque el pago se confirme dos veces).
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000b');
+do $$ begin
+  if (select sum(monto) from public.ledger_entries) <> 20.00 then
+    raise exception 'El saldo de la tienda no es 20.00: %', (select sum(monto) from public.ledger_entries);
+  end if;
+end $$;
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000a');
+do $$ begin
+  if (select sum(monto) from public.ledger_entries where cuenta = 'plataforma') <> 1.00 then
+    raise exception 'La comisión de la plataforma no es 1.00';
+  end if;
+end $$;
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000c');
+do $$ begin
+  if (select count(*) from public.ledger_entries) <> 0 then raise exception 'El cliente ve el libro de movimientos'; end if;
+end $$;
 
 -- Flujo: el repartidor no ve ni toma pedidos sin confirmar
 select pg_temp.as_user('00000000-0000-0000-0000-0000000000d1');
@@ -246,7 +266,7 @@ end $$;
 -- Si el pago llega después de expirar, queda para reembolso
 set role service_role;
 do $$ begin
-  if public.confirm_payment(current_setting('test.order4')::uuid, 17100, 'AUT4', 'RRN4') <> 'reembolso_pendiente' then
+  if public.confirm_payment(current_setting('test.order4')::uuid, 2100, 'AUT4', 'RRN4') <> 'reembolso_pendiente' then
     raise exception 'Un pago tardío no quedó para reembolso';
   end if;
 end $$;
@@ -274,6 +294,85 @@ select pg_temp.expect_error(
 do $$ begin
   if (select codigo from public.orders where id = current_setting('test.order5')::uuid) !~ '^[0-9A-F]{8}$' then
     raise exception 'El pedido no tiene un código aleatorio';
+  end if;
+end $$;
+
+-- El admin canceló el pedido 1 (pagado): lo acreditado se revirtió
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000a');
+do $$ begin
+  if (select sum(monto) from public.ledger_entries) <> 0 then
+    raise exception 'La cancelación de un pedido pagado no revirtió los saldos';
+  end if;
+end $$;
+
+-- Reparto al cobrar: otro cliente compra y paga
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000d');
+select set_config('test.order6', public.checkout('00000000-0000-0000-0000-0000000000a1', 'Casa 9',
+  '[{"product_id":"00000000-0000-0000-0000-0000000000f1","cantidad":1}]')::text, false);
+set role service_role;
+select public.confirm_payment(current_setting('test.order6')::uuid, 1050, 'AUT6', 'RRN6');
+set role authenticated;
+
+-- En ese instante se crean las dos transferencias: 10.00 a la tienda y 0.50 a ganancias
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000a');
+do $$ begin
+  if (select monto from public.payouts where order_id = current_setting('test.order6')::uuid and destino = 'tienda') <> 10.00
+     or (select monto from public.payouts where order_id = current_setting('test.order6')::uuid and destino = 'plataforma') <> 0.50 then
+    raise exception 'Las transferencias del cobro no tienen los montos esperados';
+  end if;
+end $$;
+
+-- Sin cuenta registrada no se puede completar
+select pg_temp.expect_error(
+  format('select public.update_payout(%L, %L, %L)',
+    (select id from public.payouts where order_id = current_setting('test.order6')::uuid and destino = 'tienda'), 'completado', 'TRX1'),
+  'no está registrada');
+
+-- Un visitante sin sesión (rol anon) no puede completar transferencias
+reset role;
+grant usage on schema public, auth to anon;
+select set_config('test.payout_tienda',
+  (select id::text from public.payouts where order_id = current_setting('test.order6')::uuid and destino = 'tienda'), false);
+set role anon;
+select pg_temp.as_user('');
+select pg_temp.expect_error(
+  format('select public.update_payout(%L, %L)', current_setting('test.payout_tienda'), 'completado'),
+  'permission denied');
+reset role;
+-- Aunque tuviera permiso de ejecución, la función lo rechaza por el rol del JWT.
+set role authenticated;
+select set_config('request.jwt.claims', '{"role":"anon"}', false);
+select pg_temp.expect_error(
+  format('select public.update_payout(%L, %L)', current_setting('test.payout_tienda'), 'completado'),
+  'Solo un administrador');
+select set_config('request.jwt.claims', '', false);
+
+-- El negocio registra su cuenta; el cliente no ve transferencias; la tienda no puede completarlas
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000b');
+insert into public.store_payout_accounts (store_id, banco, tipo_cuenta, numero_cuenta, titular, documento)
+values ('00000000-0000-0000-0000-0000000000a1', 'Banco Popular', 'ahorros', '123456789', 'Tienda SRL', '00112345678');
+select pg_temp.expect_error(
+  format('select public.update_payout(%L, %L)',
+    (select id from public.payouts where order_id = current_setting('test.order6')::uuid and destino = 'tienda'), 'completado'),
+  'Solo un administrador');
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000d');
+do $$ begin
+  if (select count(*) from public.payouts) <> 0 then raise exception 'El cliente ve transferencias'; end if;
+end $$;
+
+-- El admin (o el conector) completa ambas; los saldos quedan en cero
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000a');
+update public.platform_settings set ganancias_banco = 'Banreservas', ganancias_tipo_cuenta = 'corriente',
+  ganancias_numero_cuenta = '987654321', ganancias_titular = 'Fundador', ganancias_documento = '00198765432';
+select public.update_payout(id, 'completado', 'TRX-' || destino)
+from public.payouts where order_id = current_setting('test.order6')::uuid;
+do $$ begin
+  if (select sum(monto) from public.ledger_entries where order_id = current_setting('test.order6')::uuid) <> 0 then
+    raise exception 'Las transferencias completadas no descontaron los saldos';
+  end if;
+  if (select cuenta->>'numero_cuenta' from public.payouts
+      where order_id = current_setting('test.order6')::uuid and destino = 'plataforma') <> '987654321' then
+    raise exception 'La transferencia de ganancias no fue a la cuenta del fundador';
   end if;
 end $$;
 

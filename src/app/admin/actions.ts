@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { friendlyDbError } from "@/lib/errors";
+import { parseBankAccount } from "@/lib/bankAccount";
+import { attachValues } from "@/lib/formValues";
 import type { ApprovalStatus } from "@/types/database";
 
 function parseEstado(formData: FormData): ApprovalStatus | null {
@@ -90,44 +92,52 @@ export async function savePlatformSettingsAction(formData: FormData) {
   redirect(error ? "/admin?config=error" : "/admin?config=ok");
 }
 
-/**
- * Marca como pagados a la tienda o al repartidor los pedidos que se mostraron
- * en pantalla (sus ids vienen en el formulario, para no incluir pedidos que se
- * entregaron después de cargar la página).
- */
-export async function markPayoutAction(
+/** El admin registra que hizo una transferencia (modo manual del conector). */
+export async function completePayoutAction(
   _prevState: ApprovalState,
   formData: FormData
 ): Promise<ApprovalState> {
-  const tipo = formData.get("tipo");
-  let orderIds: string[];
-  try {
-    orderIds = JSON.parse(String(formData.get("orderIds") ?? "[]"));
-  } catch {
-    return { error: "Solicitud inválida." };
-  }
-  if ((tipo !== "tienda" && tipo !== "courier") || !Array.isArray(orderIds) || orderIds.length === 0) {
-    return { error: "Solicitud inválida." };
-  }
+  const id = String(formData.get("id") ?? "");
+  const referencia = String(formData.get("referencia") ?? "").trim();
+  if (!id) return { error: "Transferencia inválida." };
+  if (!referencia) return { error: "Escribe la referencia o número de la transferencia." };
 
-  const now = new Date().toISOString();
   const supabase = await createClient();
-  const { error } =
-    tipo === "tienda"
-      ? await supabase
-          .from("order_settlements")
-          .update({ tienda_pagado_at: now })
-          .in("order_id", orderIds)
-          .is("tienda_pagado_at", null)
-      : await supabase
-          .from("order_settlements")
-          .update({ courier_pagado_at: now })
-          .in("order_id", orderIds)
-          .is("courier_pagado_at", null);
-  if (error) return { error: friendlyDbError(error, "No se pudo registrar el pago.") };
+  const { error } = await supabase.rpc("update_payout", {
+    p_payout_id: id,
+    p_estado: "completado",
+    p_referencia: referencia,
+  });
+  if (error) return { error: friendlyDbError(error, "No se pudo registrar la transferencia.") };
 
   revalidatePath("/admin");
   return { error: null };
+}
+
+/** Cuenta bancaria donde el fundador recibe las ganancias de la plataforma. */
+export async function saveGananciasAccountAction(
+  _prevState: ApprovalState & { saved?: boolean; values?: Record<string, string> },
+  formData: FormData
+): Promise<ApprovalState & { saved?: boolean; values?: Record<string, string> }> {
+  const parsed = parseBankAccount(formData);
+  if (!parsed.ok) return attachValues({ error: parsed.error }, formData, ["banco", "tipo_cuenta", "numero_cuenta", "titular", "documento"]);
+
+  const c = parsed.cuenta;
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("platform_settings")
+    .update({
+      ganancias_banco: c.banco,
+      ganancias_tipo_cuenta: c.tipo_cuenta,
+      ganancias_numero_cuenta: c.numero_cuenta,
+      ganancias_titular: c.titular,
+      ganancias_documento: c.documento,
+    })
+    .eq("id", true);
+  if (error) return { error: friendlyDbError(error, "No se pudo guardar la cuenta.") };
+
+  revalidatePath("/admin");
+  return { error: null, saved: true };
 }
 
 export async function markRefundedAction(

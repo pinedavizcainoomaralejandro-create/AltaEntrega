@@ -32,17 +32,13 @@ export default async function PagarPage({ params }: { params: Promise<{ orderId:
       <p className="mb-6 text-sm text-stone-500">Tienes 30 minutos para completar el pago; luego el pedido se cancela.</p>
 
       <div className="mb-6 card p-4 text-sm">
-        <div className="flex justify-between">
-          <span>Productos</span>
+        <div className="flex justify-between text-base font-semibold">
+          <span>Pagas ahora con tarjeta</span>
           <span>RD${order.subtotal.toFixed(2)}</span>
         </div>
-        <div className="flex justify-between">
-          <span>Delivery</span>
+        <div className="mt-2 flex justify-between border-t border-stone-100 pt-2 text-stone-600">
+          <span>Delivery, en efectivo al repartidor</span>
           <span>RD${order.delivery_fee.toFixed(2)}</span>
-        </div>
-        <div className="mt-2 flex justify-between border-t border-stone-100 pt-2 text-base font-medium">
-          <span>Total</span>
-          <span>RD${order.total.toFixed(2)}</span>
         </div>
       </div>
 
@@ -76,7 +72,8 @@ export default async function PagarPage({ params }: { params: Promise<{ orderId:
           form={buildAzulPaymentForm({
             mode,
             orderNumber: String(order.numero),
-            total: order.total,
+            // En línea solo los productos: el delivery se paga en efectivo al recibir.
+            total: order.subtotal,
             siteUrl,
             orderId: order.id,
           })}

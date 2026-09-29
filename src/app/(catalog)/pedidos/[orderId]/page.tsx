@@ -81,11 +81,15 @@ export default async function PedidoDetallePage({
           ))}
         </ul>
         <div className="mt-2 flex justify-between border-t border-stone-100 pt-2 text-sm">
-          <span>Delivery</span>
+          <span>Pagado con tarjeta</span>
+          <span>RD${order.subtotal.toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between text-sm text-stone-600">
+          <span>Delivery, en efectivo al repartidor</span>
           <span>RD${order.delivery_fee.toFixed(2)}</span>
         </div>
         <div className="flex justify-between text-sm font-medium">
-          <span>Total</span>
+          <span>Total del pedido</span>
           <span>RD${order.total.toFixed(2)}</span>
         </div>
         <p className="mt-1 text-xs text-stone-400">{ESTADO_PAGO_LABEL[order.estado_pago] ?? order.estado_pago}</p>

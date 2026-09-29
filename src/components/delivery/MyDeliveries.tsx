@@ -110,7 +110,7 @@ export default function MyDeliveries({ courierId }: { courierId: string }) {
                 <p className="font-medium">{o.storeNombre}</p>
                 <p className="truncate text-sm text-stone-500">{o.direccion_entrega}</p>
                 <p className="text-xs text-stone-400">
-                  Ganas RD${o.delivery_fee.toFixed(2)} · {STATUS_LABEL[o.estado]}
+                  Cobra RD${o.delivery_fee.toFixed(2)} en efectivo · {STATUS_LABEL[o.estado]}
                 </p>
               </div>
               {nextLabel ? (

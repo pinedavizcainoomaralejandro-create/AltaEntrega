@@ -23,7 +23,7 @@ export async function simulatePaymentAction(formData: FormData) {
 
   const { data: order } = await supabase
     .from("orders")
-    .select("id, total, estado")
+    .select("id, subtotal, estado")
     .eq("id", orderId)
     .eq("cliente_id", user.id)
     .maybeSingle();
@@ -32,7 +32,7 @@ export async function simulatePaymentAction(formData: FormData) {
   if (aprobado) {
     await recordApprovedPayment({
       orderId,
-      amountCentavos: Number(toCentavos(order.total)),
+      amountCentavos: Number(toCentavos(order.subtotal)),
       authorizationCode: "SIMULADO",
       reference: `SIM-${Date.now()}`,
     });

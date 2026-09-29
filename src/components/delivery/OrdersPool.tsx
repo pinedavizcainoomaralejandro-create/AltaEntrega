@@ -105,7 +105,7 @@ export default function OrdersPool() {
               <p className="truncate text-sm text-stone-500">Recoger: {o.storeDireccion}</p>
               <p className="truncate text-sm text-stone-500">Entregar: {o.direccion_entrega}</p>
               <p className="text-xs text-stone-400">
-                Ganas RD${o.delivery_fee.toFixed(2)} · ya pagado por el cliente
+                Cobras RD${o.delivery_fee.toFixed(2)} en efectivo al entregar (es tuyo)
               </p>
             </div>
             <button

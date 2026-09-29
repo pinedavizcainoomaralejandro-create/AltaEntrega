@@ -58,6 +58,54 @@ export type Database = {
           },
         ]
       }
+      ledger_entries: {
+        Row: {
+          created_at: string
+          cuenta: string
+          id: string
+          monto: number
+          order_id: string | null
+          referencia: string | null
+          store_id: string | null
+          tipo: string
+        }
+        Insert: {
+          created_at?: string
+          cuenta: string
+          id?: string
+          monto: number
+          order_id?: string | null
+          referencia?: string | null
+          store_id?: string | null
+          tipo: string
+        }
+        Update: {
+          created_at?: string
+          cuenta?: string
+          id?: string
+          monto?: number
+          order_id?: string | null
+          referencia?: string | null
+          store_id?: string | null
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ledger_entries_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ledger_entries_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           cantidad: number
@@ -266,22 +314,97 @@ export type Database = {
           },
         ]
       }
+      payouts: {
+        Row: {
+          completado_at: string | null
+          created_at: string
+          cuenta: Json | null
+          destino: string
+          error: string | null
+          estado: string
+          id: string
+          monto: number
+          order_id: string
+          proveedor: string
+          referencia: string | null
+          store_id: string | null
+        }
+        Insert: {
+          completado_at?: string | null
+          created_at?: string
+          cuenta?: Json | null
+          destino: string
+          error?: string | null
+          estado?: string
+          id?: string
+          monto: number
+          order_id: string
+          proveedor?: string
+          referencia?: string | null
+          store_id?: string | null
+        }
+        Update: {
+          completado_at?: string | null
+          created_at?: string
+          cuenta?: Json | null
+          destino?: string
+          error?: string | null
+          estado?: string
+          id?: string
+          monto?: number
+          order_id?: string
+          proveedor?: string
+          referencia?: string | null
+          store_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payouts_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payouts_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       platform_settings: {
         Row: {
           commission_rate: number
           delivery_fee: number
+          ganancias_banco: string | null
+          ganancias_documento: string | null
+          ganancias_numero_cuenta: string | null
+          ganancias_tipo_cuenta: string | null
+          ganancias_titular: string | null
           id: boolean
           updated_at: string
         }
         Insert: {
           commission_rate?: number
           delivery_fee?: number
+          ganancias_banco?: string | null
+          ganancias_documento?: string | null
+          ganancias_numero_cuenta?: string | null
+          ganancias_tipo_cuenta?: string | null
+          ganancias_titular?: string | null
           id?: boolean
           updated_at?: string
         }
         Update: {
           commission_rate?: number
           delivery_fee?: number
+          ganancias_banco?: string | null
+          ganancias_documento?: string | null
+          ganancias_numero_cuenta?: string | null
+          ganancias_tipo_cuenta?: string | null
+          ganancias_titular?: string | null
           id?: boolean
           updated_at?: string
         }
@@ -338,6 +461,44 @@ export type Database = {
             foreignKeyName: "products_store_id_fkey"
             columns: ["store_id"]
             isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_payout_accounts: {
+        Row: {
+          banco: string
+          documento: string
+          numero_cuenta: string
+          store_id: string
+          tipo_cuenta: string
+          titular: string
+          updated_at: string
+        }
+        Insert: {
+          banco: string
+          documento: string
+          numero_cuenta: string
+          store_id: string
+          tipo_cuenta: string
+          titular: string
+          updated_at?: string
+        }
+        Update: {
+          banco?: string
+          documento?: string
+          numero_cuenta?: string
+          store_id?: string
+          tipo_cuenta?: string
+          titular?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_payout_accounts_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
             referencedRelation: "stores"
             referencedColumns: ["id"]
           },
@@ -485,10 +646,23 @@ export type Database = {
         }[]
       }
       mark_refunded: { Args: { p_order_id: string }; Returns: undefined }
+      payout_destination: {
+        Args: { p_destino: string; p_store_id: string }
+        Returns: Json
+      }
       restore_order_stock: { Args: { p_order_id: string }; Returns: undefined }
       store_advance_order: {
         Args: { p_order_id: string }
         Returns: Database["public"]["Enums"]["order_status"]
+      }
+      update_payout: {
+        Args: {
+          p_error?: string
+          p_estado: string
+          p_payout_id: string
+          p_referencia?: string
+        }
+        Returns: undefined
       }
     }
     Enums: {
