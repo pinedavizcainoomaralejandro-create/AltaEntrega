@@ -30,7 +30,7 @@ export default async function PedidoDetallePage({
 
   const { data: order } = await supabase
     .from("orders")
-    .select("id, numero, store_id, direccion_entrega, subtotal, delivery_fee, total, estado, estado_pago, created_at")
+    .select("id, codigo, store_id, direccion_entrega, subtotal, delivery_fee, total, estado, estado_pago, created_at")
     .eq("id", orderId)
     .eq("cliente_id", user.id)
     .maybeSingle();
@@ -65,7 +65,7 @@ export default async function PedidoDetallePage({
       <PaymentResultBanner pago={pago} />
 
       <h1 className="mb-1 text-2xl font-semibold">{store?.nombre ?? "Tienda"}</h1>
-      <p className="text-xs text-neutral-400">Pedido #{order.numero}</p>
+      <p className="text-xs text-neutral-400">Pedido {order.codigo}</p>
       <p className="mb-6 text-sm text-neutral-500">{order.direccion_entrega}</p>
 
       <div className="mb-6 rounded-lg border border-neutral-200 p-4">

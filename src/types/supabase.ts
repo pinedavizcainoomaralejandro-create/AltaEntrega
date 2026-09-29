@@ -184,6 +184,7 @@ export type Database = {
       orders: {
         Row: {
           cliente_id: string
+          codigo: string
           courier_id: string | null
           created_at: string
           delivery_fee: number
@@ -203,6 +204,7 @@ export type Database = {
         }
         Insert: {
           cliente_id: string
+          codigo?: string
           courier_id?: string | null
           created_at?: string
           delivery_fee?: number
@@ -222,6 +224,7 @@ export type Database = {
         }
         Update: {
           cliente_id?: string
+          codigo?: string
           courier_id?: string | null
           created_at?: string
           delivery_fee?: number

@@ -40,7 +40,7 @@ export default async function PaymentsAdmin({ configResult }: { configResult?: s
       .eq("estado_pago", "pagado"),
     supabase
       .from("orders")
-      .select("id, numero, total, pago_referencia, pagado_at")
+      .select("id, numero, codigo, total, pago_referencia, pagado_at")
       .eq("estado_pago", "reembolso_pendiente")
       .order("pagado_at", { ascending: true }),
   ]);
@@ -157,14 +157,14 @@ export default async function PaymentsAdmin({ configResult }: { configResult?: s
               {refunds.map((r) => (
                 <li key={r.id} className="flex items-center justify-between gap-3 rounded-md border border-neutral-200 p-3 text-sm">
                   <span>
-                    Pedido #{r.numero} · RD${r.total.toFixed(2)} · ref. {r.pago_referencia ?? "—"}
+                    Pedido {r.codigo} (AZUL #{r.numero}) · RD${r.total.toFixed(2)} · ref. {r.pago_referencia ?? "—"}
                     {r.pagado_at && <span className="text-neutral-500"> · {formatFecha(r.pagado_at)}</span>}
                   </span>
                   <AdminActionButton
                     action={markRefundedAction}
                     fields={{ id: r.id }}
                     label="Marcar reembolsado"
-                    confirmMessage={`¿Ya reembolsaste RD$${r.total.toFixed(2)} del pedido #${r.numero}?`}
+                    confirmMessage={`¿Ya reembolsaste RD$${r.total.toFixed(2)} del pedido ${r.codigo}?`}
                   />
                 </li>
               ))}

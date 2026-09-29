@@ -251,5 +251,30 @@ do $$ begin
 end $$;
 set role authenticated;
 
+-- La tienda no ve el teléfono del cliente en un pedido sin pagar
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000c');
+select set_config('test.order5', public.checkout('00000000-0000-0000-0000-0000000000a1', 'Casa 5',
+  '[{"product_id":"00000000-0000-0000-0000-0000000000f1","cantidad":1}]')::text, false);
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000b');
+do $$ begin
+  if (select cliente_telefono from public.get_order_contacts(current_setting('test.order5')::uuid)) is not null then
+    raise exception 'La tienda ve el teléfono de un pedido sin pagar';
+  end if;
+end $$;
+
+-- Máximo 2 pedidos esperando pago por cliente
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000c');
+select pg_temp.expect_error(
+  $$select public.checkout('00000000-0000-0000-0000-0000000000a1', 'Casa 5',
+    '[{"product_id":"00000000-0000-0000-0000-0000000000f1","cantidad":1}]')$$,
+  'Tienes pedidos esperando pago');
+
+-- Código de pedido aleatorio
+do $$ begin
+  if (select codigo from public.orders where id = current_setting('test.order5')::uuid) !~ '^[0-9A-F]{8}$' then
+    raise exception 'El pedido no tiene un código aleatorio';
+  end if;
+end $$;
+
 reset role;
 \echo 'OK: todas las pruebas de base de datos pasaron'

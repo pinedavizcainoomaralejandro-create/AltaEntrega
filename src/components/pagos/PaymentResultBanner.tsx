@@ -6,7 +6,10 @@ import { useCart } from "@/lib/cart/CartContext";
 const MESSAGES: Record<string, { text: string; tone: "ok" | "warn" | "error" }> = {
   aprobado: { text: "¡Pago aprobado! Tu pedido fue enviado a la tienda.", tone: "ok" },
   rechazado: { text: "El pago fue rechazado y el pedido se canceló. Tu carrito sigue guardado para intentarlo de nuevo.", tone: "error" },
-  cancelado: { text: "Cancelaste el pago y el pedido se canceló. Tu carrito sigue guardado.", tone: "warn" },
+  cancelado: {
+    text: "Cancelaste el pago. Tu pedido sigue reservado 30 minutos: puedes completar el pago o cancelarlo abajo.",
+    tone: "warn",
+  },
   reembolso: {
     text: "Tu pago llegó después de que el pedido expirara. Te devolveremos el dinero; contacta a soporte si tienes dudas.",
     tone: "warn",
@@ -23,12 +26,20 @@ const TONES = {
   error: "bg-red-50 text-red-700",
 };
 
-/** Mensaje al volver del pago. Con el pago aprobado, vacía el carrito. */
+/**
+ * Mensaje al volver del pago. Con el pago aprobado vacía el carrito una sola
+ * vez: después quita ?pago= de la URL, para que volver a esta página (historial,
+ * recarga o marcador) no borre un carrito nuevo.
+ */
 export default function PaymentResultBanner({ pago }: { pago: string | undefined }) {
   const { clear, hydrated } = useCart();
 
   useEffect(() => {
-    if (pago === "aprobado" && hydrated) clear();
+    if (!pago || !hydrated) return;
+    if (pago === "aprobado") clear();
+    const url = new URL(window.location.href);
+    url.searchParams.delete("pago");
+    window.history.replaceState(window.history.state, "", url);
   }, [pago, hydrated, clear]);
 
   const message = pago ? MESSAGES[pago] : undefined;

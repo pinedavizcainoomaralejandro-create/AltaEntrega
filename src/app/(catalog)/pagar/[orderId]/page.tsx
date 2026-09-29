@@ -15,7 +15,7 @@ export default async function PagarPage({ params }: { params: Promise<{ orderId:
 
   const { data: order } = await supabase
     .from("orders")
-    .select("id, numero, subtotal, delivery_fee, total, estado")
+    .select("id, numero, codigo, subtotal, delivery_fee, total, estado")
     .eq("id", orderId)
     .eq("cliente_id", user.id)
     .maybeSingle();
@@ -28,7 +28,7 @@ export default async function PagarPage({ params }: { params: Promise<{ orderId:
 
   return (
     <div className="mx-auto max-w-md">
-      <h1 className="mb-1 text-2xl font-semibold">Pagar pedido #{order.numero}</h1>
+      <h1 className="mb-1 text-2xl font-semibold">Pagar pedido {order.codigo}</h1>
       <p className="mb-6 text-sm text-neutral-500">Tienes 30 minutos para completar el pago; luego el pedido se cancela.</p>
 
       <div className="mb-6 rounded-lg border border-neutral-200 p-4 text-sm">

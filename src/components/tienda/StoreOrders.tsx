@@ -9,7 +9,7 @@ import OrderDetails from "@/components/pedidos/OrderDetails";
 import { formatFecha } from "@/lib/format";
 
 type StoreOrder = {
-  numero: number;
+  codigo: string;
   montoTienda: number | null;
   id: string;
   direccion_entrega: string;
@@ -36,10 +36,11 @@ export default function StoreOrders({ storeId }: { storeId: string }) {
   const refresh = useCallback(async () => {
     const { data, error: queryError } = await supabase
       .from("orders")
-      .select("id, numero, direccion_entrega, estado, courier_id, created_at")
+      .select("id, codigo, direccion_entrega, estado, courier_id, created_at")
       .eq("store_id", storeId)
-      // Un pedido sin pagar todavía no es un pedido para la tienda.
-      .neq("estado", "esperando_pago")
+      // Solo pedidos pagados: los que esperan pago, se rechazaron o expiraron
+      // nunca le llegaron a la tienda.
+      .in("estado_pago", ["pagado", "reembolso_pendiente", "reembolsado"])
       .order("created_at", { ascending: false })
       .limit(100);
 
@@ -97,7 +98,7 @@ export default function StoreOrders({ storeId }: { storeId: string }) {
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0">
             <p className="font-medium">
-              #{o.numero} · {ORDER_STATUS_LABEL[o.estado]}
+              {o.codigo} · {ORDER_STATUS_LABEL[o.estado]}
             </p>
             <p className="truncate text-sm text-neutral-500">Entregar en: {o.direccion_entrega}</p>
             <p className="text-xs text-neutral-400">

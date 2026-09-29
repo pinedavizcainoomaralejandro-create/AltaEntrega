@@ -1,5 +1,4 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyAzulResponse } from "@/lib/payments/azul";
 import { recordApprovedPayment, recordFailedPayment } from "@/lib/payments/record";
@@ -7,7 +6,10 @@ import { recordApprovedPayment, recordFailedPayment } from "@/lib/payments/recor
 // AZUL devuelve al cliente aquí después de pagar (ApprovedUrl / DeclinedUrl /
 // CancelUrl). El resultado solo se acepta si la firma AuthHash es válida.
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = request.nextUrl;
+  const { searchParams } = request.nextUrl;
+  // La URL pública configurada: detrás de un proxy o CDN, el origen de la
+  // petición puede no ser el dominio real.
+  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? request.nextUrl.origin;
   const orderId = searchParams.get("pedido") ?? "";
   const resultado = searchParams.get("resultado");
   const back = (pago: string) => NextResponse.redirect(`${origin}/pedidos/${orderId}?pago=${pago}`);
@@ -17,18 +19,10 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Cancelar en AZUL no trae firma: solo lo aceptamos del dueño del pedido.
-    if (resultado === "cancelado") {
-      const supabase = await createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      const { data: order } = user
-        ? await supabase.from("orders").select("id").eq("id", orderId).eq("cliente_id", user.id).maybeSingle()
-        : { data: null };
-      if (order) await recordFailedPayment(orderId);
-      return back("cancelado");
-    }
+    // Cancelar en AZUL no trae firma, así que no cambia nada: un enlace
+    // malicioso no puede cancelar pedidos. El pedido sigue reservado hasta que
+    // el cliente pague, lo cancele desde "Mis pedidos" o expire.
+    if (resultado === "cancelado") return back("cancelado");
 
     const result = verifyAzulResponse(searchParams);
     if (!result) {

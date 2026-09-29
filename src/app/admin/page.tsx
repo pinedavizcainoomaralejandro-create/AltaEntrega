@@ -40,7 +40,12 @@ export default async function AdminPage({
     { data: orders, count: totalOrders },
   ] = await Promise.all([
     supabase.from("stores").select("id", { count: "exact", head: true }).eq("estado", "aprobado"),
-    supabase.from("orders").select("id", { count: "exact", head: true }).gte("created_at", startOfTodayISO()),
+    supabase
+      .from("orders")
+      .select("id", { count: "exact", head: true })
+      .gte("created_at", startOfTodayISO())
+      // Solo pedidos pagados: los intentos de pago fallidos no son pedidos.
+      .in("estado_pago", ["pagado", "reembolso_pendiente", "reembolsado"]),
     supabase
       .from("couriers")
       .select("id", { count: "exact", head: true })

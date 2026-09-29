@@ -15,6 +15,9 @@ export default async function PedidosPage() {
     .from("orders")
     .select("id, store_id, estado, total, metodo_pago, created_at")
     .eq("cliente_id", user.id)
+    // Oculta los intentos de pago que no se completaron (rechazados, expirados
+    // o cancelados antes de pagar); los que esperan pago sí se muestran.
+    .or("estado.neq.cancelado,estado_pago.in.(pagado,reembolso_pendiente,reembolsado)")
     .order("created_at", { ascending: false });
 
   if (!orders || orders.length === 0) {
