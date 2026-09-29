@@ -1,5 +1,6 @@
 import { requireOwnCourier } from "@/lib/supabase/current-courier";
 import { signOutAction } from "@/app/(auth)/actions";
+import HomeLink from "@/components/HomeLink";
 
 export default async function DeliveryLayout({ children }: { children: React.ReactNode }) {
   const { courier } = await requireOwnCourier();
@@ -11,11 +12,14 @@ export default async function DeliveryLayout({ children }: { children: React.Rea
           <p className="text-sm text-neutral-500">Panel de repartidor</p>
           <h1 className="text-xl font-semibold">{courier.vehiculo}</h1>
         </div>
-        <form action={signOutAction}>
-          <button type="submit" className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm">
-            Cerrar sesión
-          </button>
-        </form>
+        <div className="flex items-center gap-4">
+          <HomeLink />
+          <form action={signOutAction}>
+            <button type="submit" className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm">
+              Cerrar sesión
+            </button>
+          </form>
+        </div>
       </div>
 
       {children}

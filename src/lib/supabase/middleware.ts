@@ -14,14 +14,29 @@ function isPublicPath(pathname: string) {
   );
 }
 
-/** A dónde debe ir cada usuario según su rol y su estado de aprobación. */
+// Páginas del catálogo que no dependen del rol: solo se refresca la sesión,
+// sin consultar perfil ni tienda/repartidor en cada request.
+function isCatalogPath(pathname: string) {
+  return (
+    pathname.startsWith("/tiendas/") ||
+    pathname === "/carrito" ||
+    pathname.startsWith("/auth/") ||
+    pathname === "/forgot-password"
+  );
+}
+
+/**
+ * A dónde debe ir cada usuario según su rol y su estado de aprobación.
+ * "rejected" indica una tienda/repartidor rechazado, que puede volver a
+ * /complete-profile para corregir sus datos y reenviarlos.
+ */
 async function resolveHomePath(
   supabase: ReturnType<typeof createServerClient<Database>>,
   userId: string,
   rol: string
-) {
-  if (rol === "cliente") return "/";
-  if (rol === "admin") return "/admin";
+): Promise<{ home: string; rejected: boolean }> {
+  if (rol === "cliente") return { home: "/", rejected: false };
+  if (rol === "admin") return { home: "/admin", rejected: false };
 
   if (rol === "tienda") {
     const { data: store } = await supabase
@@ -30,9 +45,9 @@ async function resolveHomePath(
       .eq("user_id", userId)
       .maybeSingle();
 
-    if (!store) return "/complete-profile/tienda";
-    if (store.estado !== "aprobado") return "/pending-approval";
-    return "/dashboard/tienda";
+    if (!store) return { home: "/complete-profile/tienda", rejected: false };
+    if (store.estado !== "aprobado") return { home: "/pending-approval", rejected: store.estado === "rechazado" };
+    return { home: "/dashboard/tienda", rejected: false };
   }
 
   if (rol === "courier") {
@@ -42,12 +57,14 @@ async function resolveHomePath(
       .eq("user_id", userId)
       .maybeSingle();
 
-    if (!courier) return "/complete-profile/delivery";
-    if (courier.estado !== "aprobado") return "/pending-approval";
-    return "/dashboard/delivery";
+    if (!courier) return { home: "/complete-profile/delivery", rejected: false };
+    if (courier.estado !== "aprobado") {
+      return { home: "/pending-approval", rejected: courier.estado === "rechazado" };
+    }
+    return { home: "/dashboard/delivery", rejected: false };
   }
 
-  return "/login";
+  return { home: "/login", rejected: false };
 }
 
 export async function updateSession(request: NextRequest) {
@@ -87,6 +104,8 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  if (isCatalogPath(pathname)) return supabaseResponse;
+
   const { data: profile } = await supabase
     .from("users")
     .select("rol")
@@ -102,12 +121,15 @@ export async function updateSession(request: NextRequest) {
   }
 
   const rol = profile.rol;
-  const home = await resolveHomePath(supabase, user.id, rol);
+  const { home, rejected } = await resolveHomePath(supabase, user.id, rol);
 
   // Ya autenticado: fuera de login/register, mándalo a su home. "/" es el
-  // catálogo público y es el home del cliente, así que solo lo sacamos de ahí
-  // si su rol no es cliente (tienda/courier/admin tienen su propio dashboard).
-  if (pathname === "/login" || pathname === "/register" || (pathname === "/" && home !== "/")) {
+  // catálogo público y el home del cliente; solo sacamos de ahí a quien tiene
+  // un panel propio (tienda/repartidor aprobados y admin). Una cuenta pendiente
+  // o sin perfil puede ver el catálogo, así el botón "Inicio" nunca la deja
+  // encerrada en su pantalla de solicitud.
+  const hasPanel = home.startsWith("/dashboard/") || home === "/admin";
+  if (pathname === "/login" || pathname === "/register" || (pathname === "/" && hasPanel)) {
     const url = request.nextUrl.clone();
     url.pathname = home;
     return NextResponse.redirect(url);
@@ -117,8 +139,10 @@ export async function updateSession(request: NextRequest) {
     (pathname.startsWith("/dashboard/tienda") && home !== pathname && !home.startsWith("/dashboard/tienda")) ||
     (pathname.startsWith("/dashboard/delivery") && home !== pathname && !home.startsWith("/dashboard/delivery")) ||
     (pathname.startsWith("/admin") && rol !== "admin") ||
-    (pathname.startsWith("/complete-profile/tienda") && (rol !== "tienda" || home !== "/complete-profile/tienda")) ||
-    (pathname.startsWith("/complete-profile/delivery") && (rol !== "courier" || home !== "/complete-profile/delivery")) ||
+    (pathname.startsWith("/complete-profile/tienda") &&
+      (rol !== "tienda" || (home !== "/complete-profile/tienda" && !rejected))) ||
+    (pathname.startsWith("/complete-profile/delivery") &&
+      (rol !== "courier" || (home !== "/complete-profile/delivery" && !rejected))) ||
     (pathname === "/pending-approval" && home !== "/pending-approval");
 
   if (needsRedirect) {

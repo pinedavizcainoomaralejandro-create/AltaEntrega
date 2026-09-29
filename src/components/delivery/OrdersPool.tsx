@@ -12,6 +12,7 @@ type PoolOrder = {
   metodo_pago: string;
   created_at: string;
   storeNombre: string;
+  storeDireccion: string;
 };
 
 export default function OrdersPool() {
@@ -24,7 +25,8 @@ export default function OrdersPool() {
     const { data: rows } = await supabase
       .from("orders")
       .select("id, store_id, direccion_entrega, total, metodo_pago, created_at")
-      .eq("estado", "pendiente")
+      // La bolsa muestra pedidos ya confirmados por la tienda.
+      .in("estado", ["confirmado", "preparando"])
       .is("courier_id", null)
       .order("created_at", { ascending: true });
 
@@ -34,19 +36,26 @@ export default function OrdersPool() {
     }
 
     const storeIds = Array.from(new Set(rows.map((r) => r.store_id)));
-    const { data: stores } = await supabase.from("stores").select("id, nombre").in("id", storeIds);
-    const nameById = new Map((stores ?? []).map((s) => [s.id, s.nombre] as const));
+    const { data: stores } = await supabase.from("stores").select("id, nombre, direccion").in("id", storeIds);
+    const storeById = new Map((stores ?? []).map((s) => [s.id, s] as const));
 
-    setOrders(rows.map((r) => ({ ...r, storeNombre: nameById.get(r.store_id) ?? "Tienda" })));
+    setOrders(
+      rows.map((r) => ({
+        ...r,
+        storeNombre: storeById.get(r.store_id)?.nombre ?? "Tienda",
+        storeDireccion: storeById.get(r.store_id)?.direccion ?? "",
+      }))
+    );
   }, [supabase]);
 
   useEffect(() => {
-    refresh();
-
     const channel = supabase
       .channel("orders-pool")
       .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => refresh())
-      .subscribe();
+      // Carga al quedar suscrito (o si Realtime falla, para mostrar los datos igual).
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED" || status === "CHANNEL_ERROR" || status === "TIMED_OUT") refresh();
+      });
 
     // Cuando otro repartidor toma un pedido, la fila deja de ser visible por RLS
     // para este usuario y Realtime no le envía ese cambio. Refrescar cada 15 s y
@@ -94,7 +103,8 @@ export default function OrdersPool() {
           <div key={o.id} className="flex items-center justify-between gap-3 rounded-lg border border-neutral-200 p-3">
             <div className="min-w-0">
               <p className="font-medium">{o.storeNombre}</p>
-              <p className="truncate text-sm text-neutral-500">{o.direccion_entrega}</p>
+              <p className="truncate text-sm text-neutral-500">Recoger: {o.storeDireccion}</p>
+              <p className="truncate text-sm text-neutral-500">Entregar: {o.direccion_entrega}</p>
               <p className="text-xs text-neutral-400">
                 RD${o.total.toFixed(2)} · {o.metodo_pago}
               </p>

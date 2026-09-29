@@ -1,34 +1,18 @@
 "use server";
 
+import { attachValues, type FormValues } from "@/lib/formValues";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ensureUserProfile } from "@/lib/supabase/profile";
 import { friendlyAuthError } from "@/lib/errors";
+import { EMAIL_RE, normalizeTelefono, validatePassword } from "@/lib/validation";
 import type { UserRole } from "@/types/database";
 
-export type AuthFormState = { error: string | null };
+export type AuthFormState = { error: string | null } & FormValues;
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-/** Teléfono dominicano: 10 dígitos que empiezan por 809/829/849, con o sin +1. Devuelve "8095551234" o null. */
-function normalizeTelefono(raw: string) {
-  let digits = raw.replace(/\D/g, "");
-  if (digits.length === 11 && digits.startsWith("1")) digits = digits.slice(1);
-  return /^(809|829|849)\d{7}$/.test(digits) ? digits : null;
-}
-
-/** Mínimo 8 caracteres con letras y números; máximo 72 (límite de bcrypt en Supabase Auth). */
-function validatePassword(password: string) {
-  if (password.length < 8) return "La contraseña debe tener al menos 8 caracteres.";
-  if (password.length > 72) return "La contraseña no puede tener más de 72 caracteres.";
-  if (!/[a-zA-Z]/.test(password) || !/\d/.test(password)) {
-    return "La contraseña debe incluir letras y números.";
-  }
-  return null;
-}
-
-export async function signUpAction(
+async function signUpInner(
   _prevState: AuthFormState,
   formData: FormData
 ): Promise<AuthFormState> {
@@ -61,7 +45,7 @@ export async function signUpAction(
   if (passwordError) return { error: passwordError };
   if (password !== confirmPassword) return { error: "Las contraseñas no coinciden." };
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -89,7 +73,7 @@ export async function signUpAction(
   redirect("/");
 }
 
-export async function loginAction(
+async function loginInner(
   _prevState: AuthFormState,
   formData: FormData
 ): Promise<AuthFormState> {
@@ -100,7 +84,7 @@ export async function loginAction(
     return { error: "Ingresa tu email y contraseña." };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
@@ -120,22 +104,22 @@ export async function loginAction(
 }
 
 export async function signOutAction() {
-  const supabase = createClient();
+  const supabase = await createClient();
   await supabase.auth.signOut();
   redirect("/login");
 }
 
-export type ForgotPasswordState = { error: string | null; message: string | null };
+export type ForgotPasswordState = { error: string | null; message: string | null } & FormValues;
 
-export async function requestPasswordResetAction(
+async function requestPasswordResetInner(
   _prevState: ForgotPasswordState,
   formData: FormData
 ): Promise<ForgotPasswordState> {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   if (!EMAIL_RE.test(email)) return { error: "Escribe un email válido.", message: null };
 
-  const supabase = createClient();
-  const origin = headers().get("origin") ?? process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const supabase = await createClient();
+  const origin = (await headers()).get("origin") ?? process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
   await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${origin}/auth/callback?next=/reset-password`,
@@ -161,7 +145,7 @@ export async function updatePasswordAction(
   if (passwordError) return { error: passwordError };
   if (password !== confirmPassword) return { error: "Las contraseñas no coinciden." };
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -173,4 +157,25 @@ export async function updatePasswordAction(
   if (error) return { error: friendlyAuthError(error) };
 
   redirect("/");
+}
+
+export async function signUpAction(
+  prevState: AuthFormState,
+  formData: FormData
+): Promise<AuthFormState> {
+  return attachValues(await signUpInner(prevState, formData), formData, ["nombre", "telefono", "email", "rol"]);
+}
+
+export async function loginAction(
+  prevState: AuthFormState,
+  formData: FormData
+): Promise<AuthFormState> {
+  return attachValues(await loginInner(prevState, formData), formData, ["email"]);
+}
+
+export async function requestPasswordResetAction(
+  prevState: ForgotPasswordState,
+  formData: FormData
+): Promise<ForgotPasswordState> {
+  return attachValues(await requestPasswordResetInner(prevState, formData), formData, ["email"]);
 }

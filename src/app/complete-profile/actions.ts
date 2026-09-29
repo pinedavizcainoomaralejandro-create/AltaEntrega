@@ -1,12 +1,14 @@
 "use server";
 
+import { attachValues, type FormValues } from "@/lib/formValues";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { friendlyDbError } from "@/lib/errors";
+import { isValidMatricula, normalizeCedula, normalizeMatricula } from "@/lib/validation";
 
-export type ProfileFormState = { error: string | null };
+export type ProfileFormState = { error: string | null } & FormValues;
 
-export async function createStoreProfileAction(
+async function createStoreProfileInner(
   _prevState: ProfileFormState,
   formData: FormData
 ): Promise<ProfileFormState> {
@@ -21,18 +23,28 @@ export async function createStoreProfileAction(
     return { error: "Algún campo es demasiado largo (nombre 80, dirección 200, categoría 60 caracteres)." };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { error } = await supabase.from("stores").insert({
-    user_id: user.id,
-    nombre,
-    direccion,
-    categoria,
-  });
+  // Una solicitud rechazada se corrige y vuelve a "pendiente"; si no hay
+  // solicitud, se crea.
+  const { data: existing } = await supabase.from("stores").select("id, estado").eq("user_id", user.id).maybeSingle();
+
+  const { error } =
+    existing?.estado === "rechazado"
+      ? await supabase
+          .from("stores")
+          .update({ nombre, direccion, categoria, estado: "pendiente" })
+          .eq("id", existing.id)
+      : await supabase.from("stores").insert({
+          user_id: user.id,
+          nombre,
+          direccion,
+          categoria,
+        });
 
   if (error) {
     if (error.code === "23505") return { error: "Ya registraste una tienda con esta cuenta." };
@@ -42,16 +54,8 @@ export async function createStoreProfileAction(
   redirect("/pending-approval");
 }
 
-// Cédula dominicana: 11 dígitos, con o sin guiones (000-0000000-0).
-function normalizeCedula(raw: string) {
-  return raw.replace(/\D/g, "");
-}
 
-function normalizeMatricula(raw: string) {
-  return raw.trim().toUpperCase().replace(/\s+/g, "");
-}
-
-export async function createCourierProfileAction(
+async function createCourierProfileInner(
   _prevState: ProfileFormState,
   formData: FormData
 ): Promise<ProfileFormState> {
@@ -71,22 +75,32 @@ export async function createCourierProfileAction(
   if (vehiculo.length > 60) return { error: "El tipo de vehículo es demasiado largo (máximo 60 caracteres)." };
 
   const matricula = normalizeMatricula(matriculaRaw);
-  if (!/^[A-Z0-9-]{5,10}$/.test(matricula)) {
+  if (!isValidMatricula(matricula)) {
     return { error: "La matrícula debe tener entre 5 y 10 letras o números, por ejemplo K123456." };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { error } = await supabase.from("couriers").insert({
-    user_id: user.id,
-    vehiculo,
-    documento_identidad,
-    matricula,
-  });
+  // Una solicitud rechazada se corrige y vuelve a "pendiente"; si no hay
+  // solicitud, se crea.
+  const { data: existing } = await supabase.from("couriers").select("id, estado").eq("user_id", user.id).maybeSingle();
+
+  const { error } =
+    existing?.estado === "rechazado"
+      ? await supabase
+          .from("couriers")
+          .update({ vehiculo, documento_identidad, matricula, estado: "pendiente" })
+          .eq("id", existing.id)
+      : await supabase.from("couriers").insert({
+          user_id: user.id,
+          vehiculo,
+          documento_identidad,
+          matricula,
+        });
 
   if (error) {
     if (error.code === "23505") {
@@ -102,4 +116,18 @@ export async function createCourierProfileAction(
   }
 
   redirect("/pending-approval");
+}
+
+export async function createStoreProfileAction(
+  prevState: ProfileFormState,
+  formData: FormData
+): Promise<ProfileFormState> {
+  return attachValues(await createStoreProfileInner(prevState, formData), formData, ["nombre", "direccion", "categoria"]);
+}
+
+export async function createCourierProfileAction(
+  prevState: ProfileFormState,
+  formData: FormData
+): Promise<ProfileFormState> {
+  return attachValues(await createCourierProfileInner(prevState, formData), formData, ["vehiculo", "documento_identidad", "matricula"]);
 }

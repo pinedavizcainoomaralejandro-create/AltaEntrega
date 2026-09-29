@@ -1,6 +1,6 @@
 "use client";
 
-import { useFormState } from "react-dom";
+import { useActionState } from "react";
 import type { ApprovalState } from "@/app/admin/actions";
 
 const initialState: ApprovalState = { error: null };
@@ -14,7 +14,7 @@ export default function ApprovalActions({
   action: (state: ApprovalState, formData: FormData) => Promise<ApprovalState>;
   confirmRejectMessage: string;
 }) {
-  const [state, formAction] = useFormState(action, initialState);
+  const [state, formAction] = useActionState(action, initialState);
 
   return (
     <div className="flex flex-col items-end gap-1">

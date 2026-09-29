@@ -8,7 +8,7 @@ export async function toggleAvailabilityAction(
   courierId: string,
   disponible: boolean
 ): Promise<{ error: string | null }> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

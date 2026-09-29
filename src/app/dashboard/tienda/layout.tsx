@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireOwnStore } from "@/lib/supabase/current-store";
 import { signOutAction } from "@/app/(auth)/actions";
+import HomeLink from "@/components/HomeLink";
 
 export default async function TiendaLayout({ children }: { children: React.ReactNode }) {
   const { store } = await requireOwnStore();
@@ -20,6 +21,10 @@ export default async function TiendaLayout({ children }: { children: React.React
       </div>
 
       <nav className="mb-6 flex gap-4 text-sm">
+        <HomeLink />
+        <Link href="/dashboard/tienda/pedidos" className="font-medium underline">
+          Pedidos
+        </Link>
         <Link href="/dashboard/tienda/productos" className="font-medium underline">
           Productos
         </Link>

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import type { StoreRow } from "@/types/database";
 import { updateStoreProfileAction, type StoreProfileFormState } from "@/app/dashboard/tienda/perfil/actions";
 
@@ -21,19 +21,12 @@ function SubmitButton() {
 }
 
 export default function StoreProfileForm({ store }: { store: StoreRow }) {
-  const [state, formAction] = useFormState(updateStoreProfileAction, initialState);
-  const [saved, setSaved] = useState(false);
-
-  useEffect(() => {
-    if (state.success) setSaved(true);
-  }, [state]);
+  const [state, formAction] = useActionState(updateStoreProfileAction, initialState);
+  const saved = Boolean(state.success);
 
   return (
     <form
-      action={(fd) => {
-        setSaved(false);
-        return formAction(fd);
-      }}
+      action={formAction}
       className="flex max-w-md flex-col gap-4"
     >
       <div>
@@ -48,7 +41,7 @@ export default function StoreProfileForm({ store }: { store: StoreRow }) {
         <input
           name="nombre"
           required
-          defaultValue={store.nombre}
+          defaultValue={state.values?.nombre ?? store.nombre}
           className="w-full rounded-md border border-neutral-300 px-3 py-2"
         />
       </div>
@@ -58,7 +51,7 @@ export default function StoreProfileForm({ store }: { store: StoreRow }) {
         <input
           name="direccion"
           required
-          defaultValue={store.direccion}
+          defaultValue={state.values?.direccion ?? store.direccion}
           className="w-full rounded-md border border-neutral-300 px-3 py-2"
         />
       </div>
@@ -68,7 +61,7 @@ export default function StoreProfileForm({ store }: { store: StoreRow }) {
         <input
           name="categoria"
           required
-          defaultValue={store.categoria}
+          defaultValue={state.values?.categoria ?? store.categoria}
           className="w-full rounded-md border border-neutral-300 px-3 py-2"
         />
       </div>

@@ -1,25 +1,26 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { escapeLike } from "@/lib/validation";
 import AddToCartButton from "@/components/catalog/AddToCartButton";
 
 export default async function StorePage({
   params,
   searchParams,
 }: {
-  params: { storeId: string };
-  searchParams: { q?: string };
+  params: Promise<{ storeId: string }>;
+  searchParams: Promise<{ q?: string }>;
 }) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { data: store } = await supabase
     .from("stores")
     .select("id, nombre, categoria, direccion, logo, estado")
-    .eq("id", params.storeId)
+    .eq("id", (await params).storeId)
     .maybeSingle();
 
   if (!store || store.estado !== "aprobado") notFound();
 
-  const q = (searchParams.q ?? "").trim();
+  const q = ((await searchParams).q ?? "").trim();
   let productsQuery = supabase
     .from("products")
     .select("id, nombre, descripcion, precio, talla, color, stock, foto, agotado")
@@ -27,7 +28,7 @@ export default async function StorePage({
     .eq("activo", true)
     .order("nombre");
 
-  if (q) productsQuery = productsQuery.ilike("nombre", `%${q}%`);
+  if (q) productsQuery = productsQuery.ilike("nombre", `%${escapeLike(q)}%`);
 
   const { data: products } = await productsQuery;
 

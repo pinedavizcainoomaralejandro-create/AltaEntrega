@@ -1,13 +1,14 @@
 "use server";
 
+import { attachValues, type FormValues } from "@/lib/formValues";
 import { revalidatePath } from "next/cache";
 import { friendlyDbError } from "@/lib/errors";
 import { requireOwnStore } from "@/lib/supabase/current-store";
 import { uploadStoreFile, deleteStoreFile, validateImageFile } from "@/lib/supabase/storage";
 
-export type StoreProfileFormState = { error: string | null; success?: boolean };
+export type StoreProfileFormState = { error: string | null; success?: boolean } & FormValues;
 
-export async function updateStoreProfileAction(
+async function updateStoreProfileInner(
   _prevState: StoreProfileFormState,
   formData: FormData
 ): Promise<StoreProfileFormState> {
@@ -44,4 +45,11 @@ export async function updateStoreProfileAction(
   revalidatePath("/dashboard/tienda/perfil");
   revalidatePath("/dashboard/tienda");
   return { error: null, success: true };
+}
+
+export async function updateStoreProfileAction(
+  prevState: StoreProfileFormState,
+  formData: FormData
+): Promise<StoreProfileFormState> {
+  return attachValues(await updateStoreProfileInner(prevState, formData), formData, ["nombre", "direccion", "categoria"]);
 }

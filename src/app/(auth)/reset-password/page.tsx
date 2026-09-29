@@ -1,7 +1,9 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormStatus } from "react-dom";
+import { useActionState } from "react";
 import { updatePasswordAction, type ResetPasswordState } from "../actions";
+import HomeLink from "@/components/HomeLink";
 
 const initialState: ResetPasswordState = { error: null };
 
@@ -19,10 +21,11 @@ function SubmitButton() {
 }
 
 export default function ResetPasswordPage() {
-  const [state, formAction] = useFormState(updatePasswordAction, initialState);
+  const [state, formAction] = useActionState(updatePasswordAction, initialState);
 
   return (
     <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 px-4">
+      <HomeLink className="self-start" />
       <div>
         <h1 className="text-2xl font-semibold">Crea una nueva contraseña</h1>
         <p className="text-sm text-neutral-500">Elige una contraseña nueva para tu cuenta.</p>

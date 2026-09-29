@@ -5,7 +5,7 @@ import CartHeaderLink from "@/components/catalog/CartHeaderLink";
 import { signOutAction } from "@/app/(auth)/actions";
 
 export default async function CatalogLayout({ children }: { children: React.ReactNode }) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -25,6 +25,9 @@ export default async function CatalogLayout({ children }: { children: React.Reac
               AltaEntrega
             </Link>
             <nav className="flex items-center gap-4 text-sm">
+              <Link href="/" className="underline">
+                Inicio
+              </Link>
               <CartHeaderLink />
               {user ? (
                 <>

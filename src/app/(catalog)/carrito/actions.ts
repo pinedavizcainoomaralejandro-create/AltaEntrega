@@ -1,14 +1,15 @@
 "use server";
 
+import { attachValues, type FormValues } from "@/lib/formValues";
 import { createClient } from "@/lib/supabase/server";
 import { friendlyDbError } from "@/lib/errors";
 import type { PaymentMethod } from "@/types/database";
 
-export type CheckoutState = { error: string | null; orderId?: string };
+export type CheckoutState = { error: string | null; orderId?: string } & FormValues;
 
 const PAYMENT_METHODS: PaymentMethod[] = ["efectivo", "tarjeta", "transferencia"];
 
-export async function checkoutAction(
+async function checkoutInner(
   _prevState: CheckoutState,
   formData: FormData
 ): Promise<CheckoutState> {
@@ -31,7 +32,7 @@ export async function checkoutAction(
     return { error: "Tu carrito está vacío." };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -47,4 +48,11 @@ export async function checkoutAction(
   if (error) return { error: friendlyDbError(error, "No se pudo completar tu pedido. Inténtalo de nuevo.") };
 
   return { error: null, orderId: data };
+}
+
+export async function checkoutAction(
+  prevState: CheckoutState,
+  formData: FormData
+): Promise<CheckoutState> {
+  return attachValues(await checkoutInner(prevState, formData), formData, ["direccion_entrega", "metodo_pago"]);
 }

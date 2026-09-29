@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { friendlyDbError } from "@/lib/errors";
 import type { OrderStatus } from "@/types/database";
+import OrderDetails from "@/components/pedidos/OrderDetails";
 
 type AssignedOrder = {
   id: string;
@@ -16,10 +17,9 @@ type AssignedOrder = {
   storeNombre: string;
 };
 
+// El repartidor solo avanza desde "preparando"; antes, la tienda está confirmando y preparando.
 const NEXT_LABEL: Partial<Record<OrderStatus, string>> = {
-  pendiente: "Confirmar pedido",
-  confirmado: "Marcar en preparación",
-  preparando: "Salir en camino",
+  preparando: "Recogí el pedido, salgo en camino",
   en_camino: "Marcar entregado",
 };
 
@@ -59,8 +59,6 @@ export default function MyDeliveries({ courierId }: { courierId: string }) {
   }, [supabase, courierId]);
 
   useEffect(() => {
-    refresh();
-
     const channel = supabase
       .channel(`orders-mine-${courierId}`)
       .on(
@@ -68,7 +66,11 @@ export default function MyDeliveries({ courierId }: { courierId: string }) {
         { event: "*", schema: "public", table: "orders", filter: `courier_id=eq.${courierId}` },
         () => refresh()
       )
-      .subscribe();
+      // Carga al quedar suscrito (así no se pierden cambios entre la carga y la
+      // suscripción) y también si Realtime falla, para mostrar los datos igual.
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED" || status === "CHANNEL_ERROR" || status === "TIMED_OUT") refresh();
+      });
 
     return () => {
       supabase.removeChannel(channel);
@@ -102,7 +104,8 @@ export default function MyDeliveries({ courierId }: { courierId: string }) {
         orders.map((o) => {
           const nextLabel = NEXT_LABEL[o.estado];
           return (
-            <div key={o.id} className="flex items-center justify-between gap-3 rounded-lg border border-neutral-200 p-3">
+            <div key={o.id} className="flex flex-col gap-2 rounded-lg border border-neutral-200 p-3">
+            <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <p className="font-medium">{o.storeNombre}</p>
                 <p className="truncate text-sm text-neutral-500">{o.direccion_entrega}</p>
@@ -119,11 +122,17 @@ export default function MyDeliveries({ courierId }: { courierId: string }) {
                 >
                   {advancingId === o.id ? "Actualizando..." : nextLabel}
                 </button>
-              ) : (
+              ) : o.estado === "entregado" ? (
                 <span className="shrink-0 rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
                   Entregado
                 </span>
+              ) : (
+                <span className="shrink-0 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800">
+                  La tienda está preparando
+                </span>
               )}
+            </div>
+            <OrderDetails orderId={o.id} show={{ tienda: true, cliente: true }} />
             </div>
           );
         })

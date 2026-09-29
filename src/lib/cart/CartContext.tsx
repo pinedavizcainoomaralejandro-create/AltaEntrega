@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { EMPTY_CART, reconcileCart, type FreshProduct } from "./reconcile";
 
 export interface CartItem {
   productId: string;
@@ -11,13 +12,12 @@ export interface CartItem {
   cantidad: number;
 }
 
-interface CartState {
+export interface CartState {
   storeId: string | null;
   storeNombre: string | null;
   items: CartItem[];
 }
 
-const EMPTY_CART: CartState = { storeId: null, storeNombre: null, items: [] };
 const STORAGE_KEY = "altaentrega_cart";
 
 interface CartContextValue extends CartState {
@@ -25,8 +25,11 @@ interface CartContextValue extends CartState {
   removeItem: (productId: string) => void;
   setQuantity: (productId: string, cantidad: number) => void;
   clear: () => void;
+  syncProducts: (fresh: FreshProduct[]) => string[];
   total: number;
   count: number;
+  /** true cuando ya se leyó el carrito guardado en localStorage. */
+  hydrated: boolean;
 }
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -38,6 +41,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
+      // Leer localStorage solo es posible en el navegador, después de hidratar;
+      // por eso se carga en un efecto y no en el estado inicial.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (raw) setCart(JSON.parse(raw) as CartState);
     } catch {
       // localStorage no disponible o corrupto: seguimos con el carrito vacío.
@@ -99,6 +105,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const clear = useCallback(() => setCart(EMPTY_CART), []);
 
+  const syncProducts = useCallback<CartContextValue["syncProducts"]>(
+    (fresh) => {
+      const result = reconcileCart(cart, fresh);
+      if (result.notices.length > 0) setCart(result.cart);
+      return result.notices;
+    },
+    [cart]
+  );
+
   const { total, count } = useMemo(
     () => ({
       total: cart.items.reduce((sum, i) => sum + i.precio * i.cantidad, 0),
@@ -108,7 +123,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <CartContext.Provider value={{ ...cart, addItem, removeItem, setQuantity, clear, total, count }}>
+    <CartContext.Provider value={{ ...cart, addItem, removeItem, setQuantity, clear, syncProducts, total, count, hydrated }}>
       {children}
     </CartContext.Provider>
   );

@@ -4,11 +4,11 @@ import type { CourierRow } from "@/types/database";
 
 /** Sesión + perfil del repartidor autenticado. El middleware ya garantiza rol=courier y estado=aprobado. */
 export async function requireOwnCourier(): Promise<{
-  supabase: ReturnType<typeof createClient>;
+  supabase: Awaited<ReturnType<typeof createClient>>;
   userId: string;
   courier: CourierRow;
 }> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

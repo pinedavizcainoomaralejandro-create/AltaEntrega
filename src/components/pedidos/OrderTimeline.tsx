@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { ORDER_STATUS_LABEL } from "@/lib/orderStatus";
+import { friendlyDbError } from "@/lib/errors";
 import type { OrderStatusHistoryRow } from "@/types/database";
 
 export default function OrderTimeline({
@@ -14,6 +15,8 @@ export default function OrderTimeline({
 }) {
   const supabase = useMemo(() => createClient(), []);
   const [history, setHistory] = useState<OrderStatusHistoryRow[]>(initialHistory);
+  const [cancelling, setCancelling] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     const { data } = await supabase
@@ -33,7 +36,11 @@ export default function OrderTimeline({
         { event: "INSERT", schema: "public", table: "order_status_history", filter: `order_id=eq.${orderId}` },
         () => refresh()
       )
-      .subscribe();
+      // Refresca al quedar suscrito: un cambio entre el render del servidor y la
+      // suscripción no llega por Realtime.
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED" || status === "CHANNEL_ERROR" || status === "TIMED_OUT") refresh();
+      });
 
     return () => {
       supabase.removeChannel(channel);
@@ -42,6 +49,16 @@ export default function OrderTimeline({
 
   const current = history[history.length - 1]?.estado;
 
+  async function handleCancel() {
+    if (!confirm("¿Cancelar tu pedido?")) return;
+    setError(null);
+    setCancelling(true);
+    const { error: rpcError } = await supabase.rpc("cancel_order", { p_order_id: orderId });
+    setCancelling(false);
+    if (rpcError) setError(friendlyDbError(rpcError));
+    refresh();
+  }
+
   return (
     <div>
       {current && (
@@ -49,6 +66,22 @@ export default function OrderTimeline({
           Estado actual: {ORDER_STATUS_LABEL[current]}
         </p>
       )}
+
+      {current === "pendiente" && (
+        <div className="mb-4">
+          <button
+            type="button"
+            disabled={cancelling}
+            onClick={handleCancel}
+            className="rounded-md border border-red-300 px-3 py-1.5 text-sm text-red-600 disabled:opacity-50"
+          >
+            {cancelling ? "Cancelando..." : "Cancelar pedido"}
+          </button>
+          <p className="mt-1 text-xs text-neutral-500">Puedes cancelarlo mientras la tienda no lo haya confirmado.</p>
+        </div>
+      )}
+
+      {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
 
       {history.length === 0 ? (
         <p className="text-sm text-neutral-500">Todavía no hay actualizaciones de estado.</p>

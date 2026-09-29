@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ORDER_STATUS_LABEL } from "@/lib/orderStatus";
 
 export default async function PedidosPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

@@ -1,7 +1,9 @@
 import { type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
-export async function middleware(request: NextRequest) {
+// Next.js 16 renombró el middleware a "proxy": corre antes de cada request
+// para refrescar la sesión de Supabase y redirigir según rol y estado.
+export async function proxy(request: NextRequest) {
   return updateSession(request);
 }
 

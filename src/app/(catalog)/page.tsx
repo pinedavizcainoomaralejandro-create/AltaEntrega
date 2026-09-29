@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { escapeLike, quotePostgrestValue } from "@/lib/validation";
 
 export default async function CatalogHomePage({
   searchParams,
 }: {
-  searchParams: { q?: string };
+  searchParams: Promise<{ q?: string }>;
 }) {
-  const supabase = createClient();
-  const q = (searchParams.q ?? "").trim();
+  const supabase = await createClient();
+  const q = ((await searchParams).q ?? "").trim();
 
   let query = supabase
     .from("stores")
@@ -16,10 +17,7 @@ export default async function CatalogHomePage({
     .order("nombre");
 
   if (q) {
-    // Comas y paréntesis rompen la sintaxis de .or(): el valor va entre comillas
-    // (escapando " y \), y % y _ se escapan para que ilike los trate como texto.
-    const pattern = `%${q.replace(/[\\%_]/g, "\\$&")}%`;
-    const quoted = `"${pattern.replace(/["\\]/g, "\\$&")}"`;
+    const quoted = quotePostgrestValue(`%${escapeLike(q)}%`);
     query = query.or(`nombre.ilike.${quoted},categoria.ilike.${quoted}`);
   }
 

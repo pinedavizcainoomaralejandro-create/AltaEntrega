@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import { useFormState, useFormStatus } from "react-dom";
+import { useEffect, useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import type { ProductRow } from "@/types/database";
 import type { ProductFormState } from "@/app/dashboard/tienda/productos/actions";
 
@@ -31,7 +31,7 @@ export default function ProductForm({
   onDone: () => void;
   submitLabel: string;
 }) {
-  const [state, formAction] = useFormState(action, initialState);
+  const [state, formAction] = useActionState(action, initialState);
 
   useEffect(() => {
     if (state.success) onDone();
@@ -47,7 +47,7 @@ export default function ProductForm({
         <input
           name="nombre"
           required
-          defaultValue={product?.nombre}
+          defaultValue={state.values?.nombre ?? product?.nombre}
           className="w-full rounded-md border border-neutral-300 px-3 py-2"
         />
       </div>
@@ -56,7 +56,7 @@ export default function ProductForm({
         <label className="mb-1 block text-sm font-medium">Descripción</label>
         <textarea
           name="descripcion"
-          defaultValue={product?.descripcion ?? ""}
+          defaultValue={state.values?.descripcion ?? product?.descripcion ?? ""}
           rows={2}
           className="w-full rounded-md border border-neutral-300 px-3 py-2"
         />
@@ -71,7 +71,7 @@ export default function ProductForm({
             step="0.01"
             min="0"
             required
-            defaultValue={product?.precio}
+            defaultValue={state.values?.precio ?? product?.precio}
             className="w-full rounded-md border border-neutral-300 px-3 py-2"
           />
         </div>
@@ -83,7 +83,7 @@ export default function ProductForm({
             min="0"
             step="1"
             required
-            defaultValue={product?.stock ?? 0}
+            defaultValue={state.values?.stock ?? product?.stock ?? 0}
             className="w-full rounded-md border border-neutral-300 px-3 py-2"
           />
         </div>
@@ -94,7 +94,7 @@ export default function ProductForm({
           <label className="mb-1 block text-sm font-medium">Talla</label>
           <input
             name="talla"
-            defaultValue={product?.talla ?? ""}
+            defaultValue={state.values?.talla ?? product?.talla ?? ""}
             className="w-full rounded-md border border-neutral-300 px-3 py-2"
           />
         </div>
@@ -102,7 +102,7 @@ export default function ProductForm({
           <label className="mb-1 block text-sm font-medium">Color</label>
           <input
             name="color"
-            defaultValue={product?.color ?? ""}
+            defaultValue={state.values?.color ?? product?.color ?? ""}
             className="w-full rounded-md border border-neutral-300 px-3 py-2"
           />
         </div>

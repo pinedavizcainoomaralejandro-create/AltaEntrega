@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo, useState, useActionState } from "react";
 import Link from "next/link";
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormStatus } from "react-dom";
 import { useCart } from "@/lib/cart/CartContext";
+import { createClient } from "@/lib/supabase/client";
 import { checkoutAction, type CheckoutState } from "./actions";
 
 const initialState: CheckoutState = { error: null };
@@ -23,12 +24,38 @@ function SubmitButton() {
 
 export default function CarritoPage() {
   const cart = useCart();
-  const [state, formAction] = useFormState(checkoutAction, initialState);
+  const [state, formAction] = useActionState(checkoutAction, initialState);
+  const supabase = useMemo(() => createClient(), []);
+  const [notices, setNotices] = useState<string[]>([]);
 
   useEffect(() => {
     if (state?.orderId) cart.clear();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state?.orderId]);
+
+  // El carrito guarda precio y stock del momento en que se agregó cada
+  // producto. Al abrirlo (y tras un error de checkout) se comparan con la base
+  // para que el total mostrado sea el que se va a cobrar.
+  const productIdsKey = cart.items.map((i) => i.productId).sort().join(",");
+  useEffect(() => {
+    if (!cart.hydrated || !productIdsKey) return;
+    let cancelled = false;
+
+    (async () => {
+      const { data } = await supabase
+        .from("products")
+        .select("id, nombre, precio, stock, activo")
+        .in("id", productIdsKey.split(","));
+      if (cancelled || !data) return;
+      const changes = cart.syncProducts(data);
+      if (changes.length > 0) setNotices(changes);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cart.hydrated, productIdsKey, state?.error, supabase]);
 
   if (state?.orderId) {
     return (
@@ -46,6 +73,13 @@ export default function CarritoPage() {
   if (cart.items.length === 0) {
     return (
       <div>
+        {notices.length > 0 && (
+          <ul className="mb-4 rounded-md bg-amber-50 p-3 text-sm text-amber-800">
+            {notices.map((n) => (
+              <li key={n}>{n}</li>
+            ))}
+          </ul>
+        )}
         <h1 className="mb-2 text-2xl font-semibold">Tu carrito está vacío</h1>
         <Link href="/" className="underline">
           Explorar tiendas
@@ -58,6 +92,14 @@ export default function CarritoPage() {
     <div className="mx-auto max-w-lg">
       <h1 className="mb-1 text-2xl font-semibold">Tu carrito</h1>
       <p className="mb-6 text-sm text-neutral-500">{cart.storeNombre}</p>
+
+      {notices.length > 0 && (
+        <ul className="mb-6 flex flex-col gap-1 rounded-md bg-amber-50 p-3 text-sm text-amber-800">
+          {notices.map((n) => (
+            <li key={n}>{n}</li>
+          ))}
+        </ul>
+      )}
 
       <div className="mb-6 flex flex-col gap-3">
         {cart.items.map((item) => (
@@ -101,7 +143,7 @@ export default function CarritoPage() {
           </label>
           <textarea
             id="direccion_entrega"
-            name="direccion_entrega"
+            name="direccion_entrega" defaultValue={state.values?.direccion_entrega}
             required
             rows={2}
             className="w-full rounded-md border border-neutral-300 px-3 py-2"
@@ -116,7 +158,7 @@ export default function CarritoPage() {
             id="metodo_pago"
             name="metodo_pago"
             required
-            defaultValue="efectivo"
+            defaultValue={state.values?.metodo_pago ?? "efectivo"}
             className="w-full rounded-md border border-neutral-300 px-3 py-2"
           >
             <option value="efectivo">Efectivo</option>

@@ -1,9 +1,11 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormStatus } from "react-dom";
+import { useActionState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { loginAction, type AuthFormState } from "../actions";
+import HomeLink from "@/components/HomeLink";
 
 const initialState: AuthFormState = { error: null };
 
@@ -21,13 +23,14 @@ function SubmitButton() {
 }
 
 export default function LoginForm() {
-  const [state, formAction] = useFormState(loginAction, initialState);
+  const [state, formAction] = useActionState(loginAction, initialState);
   const params = useSearchParams();
   const checkEmail = params.get("check_email") === "1";
   const linkError = params.get("link_error") === "1";
 
   return (
     <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 px-4">
+      <HomeLink className="self-start" />
       <h1 className="text-2xl font-semibold">Ingresar a AltaEntrega</h1>
 
       {checkEmail && (
@@ -46,7 +49,7 @@ export default function LoginForm() {
       <form action={formAction} className="flex flex-col gap-4">
         <div>
           <label htmlFor="email" className="mb-1 block text-sm font-medium">Email</label>
-          <input id="email" name="email" type="email" required className="w-full rounded-md border border-neutral-300 px-3 py-2" />
+          <input id="email" name="email" defaultValue={state.values?.email} type="email" required className="w-full rounded-md border border-neutral-300 px-3 py-2" />
         </div>
 
         <div>

@@ -1,11 +1,12 @@
 "use server";
 
+import { attachValues, type FormValues } from "@/lib/formValues";
 import { revalidatePath } from "next/cache";
 import { friendlyDbError } from "@/lib/errors";
 import { requireOwnStore } from "@/lib/supabase/current-store";
 import { uploadStoreFile, deleteStoreFile, validateImageFile } from "@/lib/supabase/storage";
 
-export type ProductFormState = { error: string | null; success?: boolean };
+export type ProductFormState = { error: string | null; success?: boolean } & FormValues;
 
 const UPLOAD_ERROR = "No se pudo subir la foto. Inténtalo de nuevo.";
 
@@ -46,7 +47,7 @@ function parseProductFields(
   };
 }
 
-export async function createProductAction(
+async function createProductInner(
   _prevState: ProductFormState,
   formData: FormData
 ): Promise<ProductFormState> {
@@ -79,7 +80,7 @@ export async function createProductAction(
   return { error: null, success: true };
 }
 
-export async function updateProductAction(
+async function updateProductInner(
   _prevState: ProductFormState,
   formData: FormData
 ): Promise<ProductFormState> {
@@ -183,4 +184,18 @@ export async function reactivateProductAction(formData: FormData) {
     .eq("store_id", store.id);
 
   revalidatePath("/dashboard/tienda/productos");
+}
+
+export async function createProductAction(
+  prevState: ProductFormState,
+  formData: FormData
+): Promise<ProductFormState> {
+  return attachValues(await createProductInner(prevState, formData), formData, ["nombre", "descripcion", "precio", "stock", "talla", "color"]);
+}
+
+export async function updateProductAction(
+  prevState: ProductFormState,
+  formData: FormData
+): Promise<ProductFormState> {
+  return attachValues(await updateProductInner(prevState, formData), formData, ["nombre", "descripcion", "precio", "stock", "talla", "color"]);
 }

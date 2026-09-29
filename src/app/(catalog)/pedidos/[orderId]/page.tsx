@@ -3,8 +3,9 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import OrderTimeline from "@/components/pedidos/OrderTimeline";
 
-export default async function PedidoDetallePage({ params }: { params: { orderId: string } }) {
-  const supabase = createClient();
+export default async function PedidoDetallePage({ params }: { params: Promise<{ orderId: string }> }) {
+  const { orderId } = await params;
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -13,7 +14,7 @@ export default async function PedidoDetallePage({ params }: { params: { orderId:
   const { data: order } = await supabase
     .from("orders")
     .select("id, store_id, direccion_entrega, total, metodo_pago, created_at")
-    .eq("id", params.orderId)
+    .eq("id", orderId)
     .eq("cliente_id", user.id)
     .maybeSingle();
 

@@ -1,8 +1,10 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormStatus } from "react-dom";
+import { useActionState } from "react";
 import Link from "next/link";
 import { signUpAction, type AuthFormState } from "../actions";
+import HomeLink from "@/components/HomeLink";
 
 const initialState: AuthFormState = { error: null };
 
@@ -26,10 +28,11 @@ function SubmitButton() {
 }
 
 export default function RegisterPage() {
-  const [state, formAction] = useFormState(signUpAction, initialState);
+  const [state, formAction] = useActionState(signUpAction, initialState);
 
   return (
     <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 px-4">
+      <HomeLink className="self-start" />
       <div>
         <h1 className="text-2xl font-semibold">Crear cuenta en AltaEntrega</h1>
         <p className="text-sm text-neutral-500">
@@ -51,7 +54,7 @@ export default function RegisterPage() {
                   type="radio"
                   name="rol"
                   value={r.value}
-                  defaultChecked={r.value === "cliente"}
+                  defaultChecked={r.value === (state.values?.rol ?? "cliente")}
                   className="sr-only"
                 />
                 {r.label}
@@ -62,7 +65,7 @@ export default function RegisterPage() {
 
         <div>
           <label htmlFor="nombre" className="mb-1 block text-sm font-medium">Nombre</label>
-          <input id="nombre" name="nombre" required minLength={2} maxLength={80} autoComplete="name" className="w-full rounded-md border border-neutral-300 px-3 py-2" />
+          <input id="nombre" name="nombre" defaultValue={state.values?.nombre} required minLength={2} maxLength={80} autoComplete="name" className="w-full rounded-md border border-neutral-300 px-3 py-2" />
         </div>
 
         <div>
@@ -71,7 +74,7 @@ export default function RegisterPage() {
           </label>
           <input
             id="telefono"
-            name="telefono"
+            name="telefono" defaultValue={state.values?.telefono}
             type="tel"
             inputMode="tel"
             autoComplete="tel"
@@ -82,7 +85,7 @@ export default function RegisterPage() {
 
         <div>
           <label htmlFor="email" className="mb-1 block text-sm font-medium">Email</label>
-          <input id="email" name="email" type="email" required autoComplete="email" className="w-full rounded-md border border-neutral-300 px-3 py-2" />
+          <input id="email" name="email" defaultValue={state.values?.email} type="email" required autoComplete="email" className="w-full rounded-md border border-neutral-300 px-3 py-2" />
         </div>
 
         <div>

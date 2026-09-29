@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useFormState } from "react-dom";
+import { useState, useActionState } from "react";
 import Image from "next/image";
 import type { ProductRow } from "@/types/database";
 import {
@@ -16,7 +15,7 @@ import ProductForm from "./ProductForm";
 const initialDeleteState: DeleteProductState = { error: null };
 
 function DeleteButton({ productId }: { productId: string }) {
-  const [state, formAction] = useFormState(deleteProductAction, initialDeleteState);
+  const [state, formAction] = useActionState(deleteProductAction, initialDeleteState);
 
   return (
     <form

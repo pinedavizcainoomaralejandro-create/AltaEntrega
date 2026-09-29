@@ -1,8 +1,10 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormStatus } from "react-dom";
+import { useActionState } from "react";
 import Link from "next/link";
 import { requestPasswordResetAction, type ForgotPasswordState } from "../actions";
+import HomeLink from "@/components/HomeLink";
 
 const initialState: ForgotPasswordState = { error: null, message: null };
 
@@ -20,10 +22,11 @@ function SubmitButton() {
 }
 
 export default function ForgotPasswordPage() {
-  const [state, formAction] = useFormState(requestPasswordResetAction, initialState);
+  const [state, formAction] = useActionState(requestPasswordResetAction, initialState);
 
   return (
     <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 px-4">
+      <HomeLink className="self-start" />
       <div>
         <h1 className="text-2xl font-semibold">Restablecer contraseña</h1>
         <p className="text-sm text-neutral-500">
@@ -41,7 +44,7 @@ export default function ForgotPasswordPage() {
             </label>
             <input
               id="email"
-              name="email"
+              name="email" defaultValue={state.values?.email}
               type="email"
               required
               className="w-full rounded-md border border-neutral-300 px-3 py-2"

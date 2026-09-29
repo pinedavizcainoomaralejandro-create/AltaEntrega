@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { signOutAction } from "@/app/(auth)/actions";
-import { setStoreStatusAction, setCourierStatusAction } from "./actions";
+import { setStoreStatusAction, setCourierStatusAction, cancelOrderAction } from "./actions";
+import CancelOrderButton from "@/components/admin/CancelOrderButton";
 import ApprovalActions from "@/components/admin/ApprovalActions";
 import { ORDER_STATUS_LABEL } from "@/lib/orderStatus";
+import HomeLink from "@/components/HomeLink";
 
 const ORDERS_PAGE_SIZE = 50;
 
@@ -17,9 +19,9 @@ function startOfTodayISO() {
   return new Date(`${today}T00:00:00-04:00`).toISOString();
 }
 
-export default async function AdminPage({ searchParams }: { searchParams: { page?: string } }) {
-  const supabase = createClient();
-  const page = Math.max(1, Math.floor(Number(searchParams.page)) || 1);
+export default async function AdminPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
+  const supabase = await createClient();
+  const page = Math.max(1, Math.floor(Number((await searchParams).page)) || 1);
   const from = (page - 1) * ORDERS_PAGE_SIZE;
 
   const [
@@ -95,11 +97,14 @@ export default async function AdminPage({ searchParams }: { searchParams: { page
     <div className="mx-auto max-w-5xl px-4 py-8">
       <div className="mb-8 flex items-center justify-between border-b border-neutral-200 pb-4">
         <h1 className="text-xl font-semibold">Panel de administración</h1>
-        <form action={signOutAction}>
-          <button type="submit" className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm">
-            Cerrar sesión
-          </button>
-        </form>
+        <div className="flex items-center gap-4">
+          <HomeLink />
+          <form action={signOutAction}>
+            <button type="submit" className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm">
+              Cerrar sesión
+            </button>
+          </form>
+        </div>
       </div>
 
       <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -194,6 +199,7 @@ export default async function AdminPage({ searchParams }: { searchParams: { page
                   <th className="px-3 py-2">Estado</th>
                   <th className="px-3 py-2">Pago</th>
                   <th className="px-3 py-2 text-right">Total</th>
+                  <th className="px-3 py-2" />
                 </tr>
               </thead>
               <tbody>
@@ -210,6 +216,11 @@ export default async function AdminPage({ searchParams }: { searchParams: { page
                     <td className="px-3 py-2">{ORDER_STATUS_LABEL[o.estado]}</td>
                     <td className="px-3 py-2 capitalize">{o.metodo_pago}</td>
                     <td className="px-3 py-2 text-right">RD${o.total.toFixed(2)}</td>
+                    <td className="px-3 py-2 text-right">
+                      {o.estado !== "entregado" && o.estado !== "cancelado" && (
+                        <CancelOrderButton id={o.id} action={cancelOrderAction} />
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
