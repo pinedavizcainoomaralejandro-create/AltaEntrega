@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fraunces, Plus_Jakarta_Sans } from "next/font/google";
+import ServiceWorkerRegister from "@/components/pwa/ServiceWorkerRegister";
 import "./globals.css";
 
 // next/font descarga las fuentes al compilar y las sirve desde este mismo
@@ -13,6 +14,16 @@ export const metadata: Metadata = {
     template: "%s · AltaEntrega",
   },
   description: "Restaurantes, empanadas, cafeterías, panaderías, reposterías y boutiques de Villa Altagracia, en la puerta de tu casa.",
+  applicationName: "AltaEntrega",
+  // iPhone: al agregarla a la pantalla de inicio abre sin barra de Safari.
+  appleWebApp: { capable: true, title: "AltaEntrega", statusBarStyle: "default" },
+  icons: { apple: "/icons/apple-touch-icon.png" },
+  formatDetection: { telephone: false },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#1c5136",
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -22,7 +33,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className={`${sans.variable} ${display.variable}`}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <ServiceWorkerRegister />
+      </body>
     </html>
   );
 }
