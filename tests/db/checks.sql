@@ -22,6 +22,10 @@ create function pg_temp.as_user(uid text) returns void language sql as $$
   select set_config('test.uid', uid, false);
 $$;
 
+-- Las pruebas del cobro con tarjeta y comisión corren en fase 2 (AZUL); las de
+-- transferencias y suscripciones (fase 1) están al final.
+update public.platform_settings set fase = 'azul';
+
 -- Datos: admin, tienda aprobada, dos clientes, repartidor aprobado y uno rechazado.
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-00000000000a', 'a@x.com'),
@@ -375,6 +379,145 @@ do $$ begin
     raise exception 'La transferencia de ganancias no fue a la cuenta del fundador';
   end if;
 end $$;
+
+-- ═════════════════════════════════════════════════════════════
+-- FASE 1: transferencias al negocio y suscripciones
+-- ═════════════════════════════════════════════════════════════
+reset role;
+update public.platform_settings set fase = 'suscripciones';
+update public.products set stock = 10;
+set role authenticated;
+
+-- El catálogo muestra el precio del negocio, sin comisión
+select pg_temp.as_user('');
+do $$ begin
+  if (select precio from public.catalog_products) <> 10.00 then
+    raise exception 'En fase 1 el catálogo no debe sumar comisión';
+  end if;
+  if (public.get_public_config() ->> 'fase') <> 'suscripciones' then raise exception 'La fase pública no es suscripciones'; end if;
+end $$;
+
+-- Pedido por transferencia: el cliente ve la cuenta del negocio y envía el comprobante
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000d');
+select set_config('test.order7', public.checkout('00000000-0000-0000-0000-0000000000a1', 'Casa 9',
+  '[{"product_id":"00000000-0000-0000-0000-0000000000f1","cantidad":2}]')::text, false);
+do $$ declare o public.orders%rowtype; begin
+  select * into o from public.orders where id = current_setting('test.order7')::uuid;
+  if o.metodo_pago <> 'transferencia' or o.subtotal <> 20.00 then
+    raise exception 'El pedido de fase 1 debe ser por transferencia y sin comisión: % %', o.metodo_pago, o.subtotal;
+  end if;
+  if (public.get_order_payment_account(o.id) ->> 'numero_cuenta') <> '123456789' then
+    raise exception 'El cliente no ve la cuenta del negocio';
+  end if;
+  if exists (select 1 from public.order_settlements where order_id = o.id) then
+    raise exception 'En fase 1 la plataforma no reparte';
+  end if;
+end $$;
+select pg_temp.expect_error(
+  format('select public.submit_order_transfer(%L, %L, %L)', current_setting('test.order7'), 'REF1', 'pedidos/otro/archivo.jpg'),
+  'Comprobante inválido');
+select public.submit_order_transfer(current_setting('test.order7')::uuid, 'REF-777',
+  'pedidos/' || current_setting('test.order7') || '/comprobante.jpg');
+select pg_temp.expect_error(
+  format('select public.cancel_order(%L)', current_setting('test.order7')),
+  'revisando tu transferencia');
+
+-- El negocio lo rechaza, el cliente reenvía y el negocio confirma: entra el pedido
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000b');
+select public.store_review_transfer(current_setting('test.order7')::uuid, false, 'No llegó');
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000d');
+select public.submit_order_transfer(current_setting('test.order7')::uuid, 'REF-778',
+  'pedidos/' || current_setting('test.order7') || '/comprobante2.jpg');
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000b');
+select public.store_review_transfer(current_setting('test.order7')::uuid, true);
+do $$ begin
+  if (select estado::text || '/' || estado_pago from public.orders where id = current_setting('test.order7')::uuid)
+     <> 'pendiente/pagado' then
+    raise exception 'Confirmar la transferencia no hizo entrar el pedido';
+  end if;
+end $$;
+
+-- Suscripción: la aprobación dio 30 días de prueba
+do $$ begin
+  if (select plan from public.subscriptions where store_id = '00000000-0000-0000-0000-0000000000a1') <> 'prueba' then
+    raise exception 'El negocio aprobado no tiene su prueba';
+  end if;
+  if (public.get_subscription_offer() ->> 'anual')::numeric <> 10200 then
+    raise exception 'El plan anual del negocio debe ser 10,200 (15%% de descuento)';
+  end if;
+end $$;
+select pg_temp.as_user('00000000-0000-0000-0000-0000000000d1');
+do $$ begin
+  if (public.get_subscription_offer() ->> 'anual')::numeric <> 5100 then
+    raise exception 'El plan anual del repartidor debe ser 5,100';
+  end if;
+end $$;
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000c');
+select pg_temp.expect_error('select public.get_subscription_offer()', 'Solo negocios y repartidores');
+
+-- Vencida más allá de la gracia: el negocio sale del catálogo y no recibe pedidos
+reset role;
+update public.subscriptions set vigente_hasta = now() - interval '6 days'
+where store_id = '00000000-0000-0000-0000-0000000000a1';
+set role authenticated;
+select pg_temp.as_user('');
+do $$ begin
+  if (select count(*) from public.catalog_products) <> 0 or (select count(*) from public.stores) <> 0 then
+    raise exception 'Un negocio con la suscripción vencida sigue en el catálogo';
+  end if;
+end $$;
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000d');
+select pg_temp.expect_error(
+  $$select public.checkout('00000000-0000-0000-0000-0000000000a1', 'Casa', '[{"product_id":"00000000-0000-0000-0000-0000000000f1","cantidad":1}]')$$,
+  'no está disponible');
+-- Dentro de la gracia sigue operando
+reset role;
+update public.subscriptions set vigente_hasta = now() - interval '3 days'
+where store_id = '00000000-0000-0000-0000-0000000000a1';
+set role authenticated;
+select pg_temp.as_user('');
+do $$ begin
+  if (select count(*) from public.catalog_products) = 0 then raise exception 'La gracia de 5 días no se respeta'; end if;
+end $$;
+
+-- El negocio paga el año: el admin aprueba y la vigencia se extiende un año
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000b');
+select pg_temp.expect_error(
+  $$select public.submit_subscription_payment('anual', 'TRX-9', 'suscripciones/otro-usuario/x.jpg')$$,
+  'Comprobante inválido');
+select set_config('test.subpay', public.submit_subscription_payment('anual', 'TRX-9',
+  'suscripciones/00000000-0000-0000-0000-00000000000b/pago.jpg')::text, false);
+select pg_temp.expect_error(
+  $$select public.submit_subscription_payment('mensual', 'TRX-10', 'suscripciones/00000000-0000-0000-0000-00000000000b/p2.jpg')$$,
+  'pago en revisión');
+select pg_temp.expect_error(format('select public.review_subscription_payment(%L, true)', current_setting('test.subpay')),
+  'Solo un administrador');
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000a');
+do $$ begin
+  if (select monto from public.subscription_payments where id = current_setting('test.subpay')::uuid) <> 10200 then
+    raise exception 'El pago anual no tomó el precio con descuento';
+  end if;
+end $$;
+select public.review_subscription_payment(current_setting('test.subpay')::uuid, true);
+do $$ begin
+  if (select vigente_hasta from public.subscriptions where store_id = '00000000-0000-0000-0000-0000000000a1')
+     < now() + interval '360 days' then
+    raise exception 'Aprobar el pago anual no extendió la vigencia un año';
+  end if;
+end $$;
+
+-- Repartidor con la suscripción vencida no puede aceptar entregas
+reset role;
+update public.subscriptions set vigente_hasta = now() - interval '10 days'
+where courier_id = '00000000-0000-0000-0000-0000000000e1';
+set role authenticated;
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000b');
+select public.store_advance_order(current_setting('test.order7')::uuid);
+select pg_temp.as_user('00000000-0000-0000-0000-0000000000d1');
+reset role;
+update public.couriers set disponible = true where id = '00000000-0000-0000-0000-0000000000e1';
+set role authenticated;
+select pg_temp.expect_error(format('select public.claim_order(%L)', current_setting('test.order7')), 'suscripción está vencida');
 
 reset role;
 \echo 'OK: todas las pruebas de base de datos pasaron'

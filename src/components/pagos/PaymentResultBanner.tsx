@@ -5,6 +5,10 @@ import { useCart } from "@/lib/cart/CartContext";
 
 const MESSAGES: Record<string, { text: string; tone: "ok" | "warn" | "error" }> = {
   aprobado: { text: "¡Pago aprobado! Tu pedido fue enviado a la tienda.", tone: "ok" },
+  comprobante: {
+    text: "¡Listo! Enviamos tu comprobante al negocio. Cuando confirme tu transferencia, empieza a preparar tu pedido.",
+    tone: "ok",
+  },
   rechazado: { text: "El pago fue rechazado y el pedido se canceló. Tu carrito sigue guardado para intentarlo de nuevo.", tone: "error" },
   cancelado: {
     text: "Cancelaste el pago. Tu pedido sigue reservado 30 minutos: puedes completar el pago o cancelarlo abajo.",
@@ -36,7 +40,7 @@ export default function PaymentResultBanner({ pago }: { pago: string | undefined
 
   useEffect(() => {
     if (!pago || !hydrated) return;
-    if (pago === "aprobado") clear();
+    if (pago === "aprobado" || pago === "comprobante") clear();
     const url = new URL(window.location.href);
     url.searchParams.delete("pago");
     window.history.replaceState(window.history.state, "", url);

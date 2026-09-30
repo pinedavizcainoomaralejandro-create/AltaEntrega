@@ -72,24 +72,68 @@ export async function cancelOrderAction(
  * en los archivos públicos de la app; el resultado vuelve como ?config=.
  */
 export async function savePlatformSettingsAction(formData: FormData) {
-  const comisionPct = Number(formData.get("comision"));
-  const delivery = Number(formData.get("delivery"));
+  const num = (k: string) => Number(formData.get(k));
+  const fase = formData.get("fase");
+  const comisionPct = num("comision");
+  const delivery = num("delivery");
+  const negocio = num("precio_negocio");
+  const repartidor = num("precio_delivery");
+  const descuentoPct = num("descuento");
+  const prueba = num("dias_prueba");
+  const gracia = num("dias_gracia");
+  const horas = num("horas_transferir");
 
-  if (!Number.isFinite(comisionPct) || comisionPct < 0 || comisionPct >= 50) {
-    redirect("/admin?config=comision_invalida");
-  }
-  if (!Number.isFinite(delivery) || delivery < 0 || delivery > 10_000) {
-    redirect("/admin?config=delivery_invalido");
-  }
+  const entero = (n: number, min: number, max: number) => Number.isInteger(n) && n >= min && n <= max;
+  const monto = (n: number) => Number.isFinite(n) && n >= 0 && n <= 1_000_000;
+
+  if (fase !== "suscripciones" && fase !== "azul") redirect("/admin?config=error");
+  if (!Number.isFinite(comisionPct) || comisionPct < 0 || comisionPct >= 50) redirect("/admin?config=comision_invalida");
+  if (!Number.isFinite(delivery) || delivery < 0 || delivery > 10_000) redirect("/admin?config=delivery_invalido");
+  if (!monto(negocio) || !monto(repartidor)) redirect("/admin?config=precio_invalido");
+  if (!Number.isFinite(descuentoPct) || descuentoPct < 0 || descuentoPct >= 90) redirect("/admin?config=descuento_invalido");
+  if (!entero(prueba, 0, 365) || !entero(gracia, 0, 60) || !entero(horas, 1, 168)) redirect("/admin?config=dias_invalidos");
 
   const supabase = await createClient();
   const { error } = await supabase
     .from("platform_settings")
-    .update({ commission_rate: Math.round(comisionPct * 100) / 10_000, delivery_fee: Math.round(delivery * 100) / 100 })
+    .update({
+      fase,
+      commission_rate: Math.round(comisionPct * 100) / 10_000,
+      delivery_fee: Math.round(delivery * 100) / 100,
+      precio_negocio_mensual: Math.round(negocio * 100) / 100,
+      precio_delivery_mensual: Math.round(repartidor * 100) / 100,
+      descuento_anual: Math.round(descuentoPct * 10) / 1000,
+      dias_prueba: prueba,
+      dias_gracia: gracia,
+      horas_para_transferir: horas,
+    })
     .eq("id", true);
 
-  revalidatePath("/admin");
+  revalidatePath("/", "layout");
   redirect(error ? "/admin?config=error" : "/admin?config=ok");
+}
+
+/** El admin aprueba o rechaza el pago de una suscripción. */
+export async function reviewSubscriptionPaymentAction(
+  _prevState: ApprovalState,
+  formData: FormData
+): Promise<ApprovalState> {
+  const id = String(formData.get("id") ?? "");
+  const aprobar = formData.get("decision") === "aprobar";
+  const motivo = String(formData.get("motivo") ?? "").trim();
+  if (!id) return { error: "Pago inválido." };
+  if (!aprobar && !motivo) return { error: "Escribe el motivo del rechazo." };
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("review_subscription_payment", {
+    p_payment_id: id,
+    p_aprobar: aprobar,
+    p_motivo: motivo || undefined,
+  });
+  if (error) return { error: friendlyDbError(error, "No se pudo revisar el pago.") };
+
+  revalidatePath("/admin");
+  return { error: null };
 }
 
 /** El admin registra que hizo una transferencia (modo manual del conector). */

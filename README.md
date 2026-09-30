@@ -41,7 +41,14 @@ Requiere Node.js 20.9 o superior.
 
 El workflow `.github/workflows/ci.yml` corre lint, typecheck, pruebas, build y las pruebas de base de datos en cada push y pull request.
 
-## Pagos (AZUL)
+## Fases de cobro
+
+Se cambian en `/admin` → *Configuración de cobro* (`platform_settings.fase`):
+
+- **Fase 1 · Transferencias y suscripciones** (inicio, por defecto): el cliente usa la plataforma gratis. Al pedir ve la cuenta bancaria del negocio, le transfiere los productos y sube el comprobante; el negocio lo confirma en *Pedidos* y el pedido entra. El delivery se paga en efectivo al repartidor. Negocios y repartidores pagan una suscripción mensual (RD$1,000 y RD$500) o anual con 15% de descuento, transfiriendo a la cuenta de ganancias del fundador y subiendo el comprobante, que el admin aprueba. Tienen 30 días de prueba desde su aprobación; al vencer, 5 días de gracia y luego pausa (el negocio no sale en el catálogo y el repartidor no acepta entregas). Todos los valores se ajustan en `/admin`. Los comprobantes van al bucket privado `comprobantes`.
+- **Fase 2 · AZUL y comisión** (cuando haya más popularidad): lo que se describe a continuación. Las suscripciones dejan de aplicarse.
+
+## Pagos (AZUL, fase 2)
 
 - El cliente paga con tarjeta en la Página de Pagos de AZUL al terminar el carrito. El pedido se crea `esperando_pago` y reserva el stock; pasa a `pendiente` (y le llega a la tienda) cuando AZUL confirma el pago. Si el pago se rechaza, se cancela o pasan 30 minutos, el pedido se cancela y el stock vuelve.
 - **Precios**: `products.precio` es lo que recibe la tienda. El cliente ve ese precio más la comisión de la plataforma (5% por defecto) a través de la vista `catalog_products`; la comisión solo existe en la base (`platform_settings`, solo admin) y el cliente no puede leer el precio base. El delivery (tarifa fija) aparece como línea aparte.

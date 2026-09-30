@@ -3,6 +3,9 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { buildAzulPaymentForm, getPaymentMode } from "@/lib/payments/azul";
 import AzulRedirectForm from "@/components/pagos/AzulRedirectForm";
+import BankAccountCard from "@/components/pagos/BankAccountCard";
+import TransferProofForm from "@/components/pagos/TransferProofForm";
+import { getPublicConfig } from "@/lib/config";
 import { simulatePaymentAction } from "./actions";
 
 export default async function PagarPage({ params }: { params: Promise<{ orderId: string }> }) {
@@ -15,13 +18,60 @@ export default async function PagarPage({ params }: { params: Promise<{ orderId:
 
   const { data: order } = await supabase
     .from("orders")
-    .select("id, numero, codigo, subtotal, delivery_fee, total, estado")
+    .select("id, numero, codigo, subtotal, delivery_fee, total, estado, metodo_pago, estado_pago, pago_motivo_rechazo")
     .eq("id", orderId)
     .eq("cliente_id", user.id)
     .maybeSingle();
 
   if (!order) notFound();
   if (order.estado !== "esperando_pago") redirect(`/pedidos/${order.id}`);
+
+  // Fase 1: transferencia directa al negocio con comprobante.
+  if (order.metodo_pago === "transferencia") {
+    const [{ data: cuenta }, config] = await Promise.all([
+      supabase.rpc("get_order_payment_account", { p_order_id: order.id }),
+      getPublicConfig(supabase),
+    ]);
+    const datos = cuenta as { banco: string; tipo_cuenta: string; numero_cuenta: string; titular: string; documento: string } | null;
+
+    return (
+      <div className="card mx-auto flex max-w-md flex-col gap-6 p-6 sm:p-8">
+        <div>
+          <h1 className="font-display text-3xl font-semibold tracking-tight">Pagar pedido {order.codigo}</h1>
+          <p className="mt-1 text-sm text-stone-500">
+            Transfiere al negocio y envía el comprobante. Tienes {config.horas_para_transferir} horas; luego el pedido
+            se cancela. El delivery (RD${order.delivery_fee.toFixed(2)}) se lo pagas en efectivo al repartidor.
+          </p>
+        </div>
+
+        {order.estado_pago === "por_confirmar" ? (
+          <p className="rounded-xl bg-monte-50 p-4 text-sm text-monte-800">
+            Recibimos tu comprobante. El negocio está confirmando tu transferencia; te avisaremos en tu pedido.
+          </p>
+        ) : datos ? (
+          <>
+            {order.estado_pago === "rechazado" && (
+              <p className="rounded-xl bg-red-50 p-4 text-sm text-red-700">
+                El negocio no pudo confirmar tu transferencia
+                {order.pago_motivo_rechazo ? `: ${order.pago_motivo_rechazo}` : "."} Revisa los datos y envía otro
+                comprobante.
+              </p>
+            )}
+            <BankAccountCard cuenta={datos} monto={order.subtotal} titulo="Transfiere a la cuenta del negocio" />
+            <TransferProofForm orderId={order.id} />
+          </>
+        ) : (
+          <p className="rounded-xl bg-red-50 p-4 text-sm text-red-700">
+            No pudimos cargar la cuenta del negocio. Vuelve a intentarlo en unos minutos.
+          </p>
+        )}
+
+        <Link href={`/pedidos/${order.id}`} className="link text-sm">
+          Ver mi pedido
+        </Link>
+      </div>
+    );
+  }
 
   const mode = getPaymentMode();
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";

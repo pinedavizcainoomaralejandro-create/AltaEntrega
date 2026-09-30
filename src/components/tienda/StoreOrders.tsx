@@ -8,8 +8,19 @@ import type { OrderStatus } from "@/types/database";
 import OrderDetails from "@/components/pedidos/OrderDetails";
 import { formatFecha } from "@/lib/format";
 
+type PendingTransfer = {
+  id: string;
+  codigo: string;
+  subtotal: number;
+  pago_referencia: string | null;
+  comprobante_path: string | null;
+  created_at: string;
+};
+
 type StoreOrder = {
   codigo: string;
+  subtotal: number;
+  metodo_pago: string;
   montoTienda: number | null;
   id: string;
   direccion_entrega: string;
@@ -30,13 +41,14 @@ const ACTIVE: OrderStatus[] = ["pendiente", "confirmado", "preparando", "en_cami
 export default function StoreOrders({ storeId }: { storeId: string }) {
   const supabase = useMemo(() => createClient(), []);
   const [orders, setOrders] = useState<StoreOrder[] | null>(null);
+  const [porConfirmar, setPorConfirmar] = useState<PendingTransfer[]>([]);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     const { data, error: queryError } = await supabase
       .from("orders")
-      .select("id, codigo, direccion_entrega, estado, courier_id, created_at")
+      .select("id, codigo, subtotal, metodo_pago, direccion_entrega, estado, courier_id, created_at")
       .eq("store_id", storeId)
       // Solo pedidos pagados: los que esperan pago, se rechazaron o expiraron
       // nunca le llegaron a la tienda.
@@ -49,6 +61,17 @@ export default function StoreOrders({ storeId }: { storeId: string }) {
       return;
     }
     const rows = data ?? [];
+
+    // Fase 1: transferencias de clientes que el negocio debe confirmar.
+    const { data: transfers } = await supabase
+      .from("orders")
+      .select("id, codigo, subtotal, pago_referencia, comprobante_path, created_at")
+      .eq("store_id", storeId)
+      .eq("estado", "esperando_pago")
+      .eq("estado_pago", "por_confirmar")
+      .order("created_at", { ascending: true });
+    setPorConfirmar(transfers ?? []);
+
     const { data: settlements } = rows.length
       ? await supabase.from("order_settlements").select("order_id, monto_tienda").in("order_id", rows.map((r) => r.id))
       : { data: [] as { order_id: string; monto_tienda: number }[] };
@@ -74,6 +97,36 @@ export default function StoreOrders({ storeId }: { storeId: string }) {
       supabase.removeChannel(channel);
     };
   }, [refresh, supabase, storeId]);
+
+  async function verComprobante(path: string | null) {
+    if (!path) return;
+    const { data, error: signError } = await supabase.storage.from("comprobantes").createSignedUrl(path, 600);
+    if (signError || !data) {
+      setError("No se pudo abrir el comprobante.");
+      return;
+    }
+    window.open(data.signedUrl, "_blank", "noopener");
+  }
+
+  async function revisarTransferencia(orderId: string, aprobar: boolean) {
+    let motivo: string | null = null;
+    if (!aprobar) {
+      motivo = prompt("¿Por qué rechazas la transferencia? (el cliente lo verá)");
+      if (motivo === null) return;
+    } else if (!confirm("¿Confirmas que el dinero ya está en tu cuenta?")) {
+      return;
+    }
+    setError(null);
+    setBusyId(orderId);
+    const { error: rpcError } = await supabase.rpc("store_review_transfer", {
+      p_order_id: orderId,
+      p_aprobar: aprobar,
+      p_motivo: motivo ?? undefined,
+    });
+    setBusyId(null);
+    if (rpcError) setError(friendlyDbError(rpcError));
+    refresh();
+  }
 
   async function run(orderId: string, fn: "store_advance_order" | "cancel_order") {
     setError(null);
@@ -103,7 +156,12 @@ export default function StoreOrders({ storeId }: { storeId: string }) {
             <p className="truncate text-sm text-stone-500">Entregar en: {o.direccion_entrega}</p>
             <p className="text-xs text-stone-400">
               {formatFecha(o.created_at)} ·{" "}
-              {o.montoTienda !== null ? `recibes RD$${o.montoTienda.toFixed(2)}` : "pagado contra entrega"} ·{" "}
+              {o.montoTienda !== null
+                ? `recibes RD$${o.montoTienda.toFixed(2)}`
+                : o.metodo_pago === "transferencia"
+                  ? `te transfirió RD$${o.subtotal.toFixed(2)}`
+                  : "pagado contra entrega"}{" "}
+              ·{" "}
               {o.courier_id ? "repartidor asignado" : "sin repartidor"}
             </p>
           </div>
@@ -145,6 +203,50 @@ export default function StoreOrders({ storeId }: { storeId: string }) {
   return (
     <div className="flex flex-col gap-6">
       {error && <p className="text-sm text-red-600">{error}</p>}
+
+      {porConfirmar.length > 0 && (
+        <section className="rounded-2xl border border-sol-200 bg-sol-50 p-4">
+          <h2 className="mb-1 font-display text-xl font-semibold">Transferencias por confirmar ({porConfirmar.length})</h2>
+          <p className="mb-3 text-sm text-stone-600">
+            Revisa en tu banco que el dinero llegó antes de confirmar. Al confirmar, el pedido entra a tus pedidos activos.
+          </p>
+          <div className="flex flex-col gap-3">
+            {porConfirmar.map((t) => (
+              <div key={t.id} className="card flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="text-sm">
+                  <p className="font-medium">
+                    Pedido {t.codigo} · <span className="font-display text-lg">RD${t.subtotal.toFixed(2)}</span>
+                  </p>
+                  <p className="text-xs text-stone-500">
+                    {formatFecha(t.created_at)} · ref. {t.pago_referencia ?? "—"}
+                  </p>
+                  <button type="button" onClick={() => verComprobante(t.comprobante_path)} className="link mt-1 text-xs">
+                    Ver comprobante
+                  </button>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    disabled={busyId === t.id}
+                    onClick={() => revisarTransferencia(t.id, true)}
+                    className="btn-primary btn-sm"
+                  >
+                    Confirmar pago
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busyId === t.id}
+                    onClick={() => revisarTransferencia(t.id, false)}
+                    className="btn-danger btn-sm"
+                  >
+                    No llegó
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section>
         <h2 className="mb-3 font-display text-xl font-semibold">Pedidos activos ({active.length})</h2>

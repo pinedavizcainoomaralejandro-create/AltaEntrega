@@ -233,6 +233,7 @@ export type Database = {
         Row: {
           cliente_id: string
           codigo: string
+          comprobante_path: string | null
           courier_id: string | null
           created_at: string
           delivery_fee: number
@@ -244,6 +245,7 @@ export type Database = {
           numero: number
           pagado_at: string | null
           pago_autorizacion: string | null
+          pago_motivo_rechazo: string | null
           pago_referencia: string | null
           store_id: string
           subtotal: number
@@ -253,6 +255,7 @@ export type Database = {
         Insert: {
           cliente_id: string
           codigo?: string
+          comprobante_path?: string | null
           courier_id?: string | null
           created_at?: string
           delivery_fee?: number
@@ -264,6 +267,7 @@ export type Database = {
           numero?: never
           pagado_at?: string | null
           pago_autorizacion?: string | null
+          pago_motivo_rechazo?: string | null
           pago_referencia?: string | null
           store_id: string
           subtotal: number
@@ -273,6 +277,7 @@ export type Database = {
         Update: {
           cliente_id?: string
           codigo?: string
+          comprobante_path?: string | null
           courier_id?: string | null
           created_at?: string
           delivery_fee?: number
@@ -284,6 +289,7 @@ export type Database = {
           numero?: never
           pagado_at?: string | null
           pago_autorizacion?: string | null
+          pago_motivo_rechazo?: string | null
           pago_referencia?: string | null
           store_id?: string
           subtotal?: number
@@ -378,34 +384,55 @@ export type Database = {
         Row: {
           commission_rate: number
           delivery_fee: number
+          descuento_anual: number
+          dias_gracia: number
+          dias_prueba: number
+          fase: string
           ganancias_banco: string | null
           ganancias_documento: string | null
           ganancias_numero_cuenta: string | null
           ganancias_tipo_cuenta: string | null
           ganancias_titular: string | null
+          horas_para_transferir: number
           id: boolean
+          precio_delivery_mensual: number
+          precio_negocio_mensual: number
           updated_at: string
         }
         Insert: {
           commission_rate?: number
           delivery_fee?: number
+          descuento_anual?: number
+          dias_gracia?: number
+          dias_prueba?: number
+          fase?: string
           ganancias_banco?: string | null
           ganancias_documento?: string | null
           ganancias_numero_cuenta?: string | null
           ganancias_tipo_cuenta?: string | null
           ganancias_titular?: string | null
+          horas_para_transferir?: number
           id?: boolean
+          precio_delivery_mensual?: number
+          precio_negocio_mensual?: number
           updated_at?: string
         }
         Update: {
           commission_rate?: number
           delivery_fee?: number
+          descuento_anual?: number
+          dias_gracia?: number
+          dias_prueba?: number
+          fase?: string
           ganancias_banco?: string | null
           ganancias_documento?: string | null
           ganancias_numero_cuenta?: string | null
           ganancias_tipo_cuenta?: string | null
           ganancias_titular?: string | null
+          horas_para_transferir?: number
           id?: boolean
+          precio_delivery_mensual?: number
+          precio_negocio_mensual?: number
           updated_at?: string
         }
         Relationships: []
@@ -548,6 +575,98 @@ export type Database = {
           },
         ]
       }
+      subscription_payments: {
+        Row: {
+          comprobante_path: string
+          created_at: string
+          estado: string
+          id: string
+          monto: number
+          motivo_rechazo: string | null
+          plan: string
+          referencia: string
+          revisado_at: string | null
+          subscription_id: string
+        }
+        Insert: {
+          comprobante_path: string
+          created_at?: string
+          estado?: string
+          id?: string
+          monto: number
+          motivo_rechazo?: string | null
+          plan: string
+          referencia: string
+          revisado_at?: string | null
+          subscription_id: string
+        }
+        Update: {
+          comprobante_path?: string
+          created_at?: string
+          estado?: string
+          id?: string
+          monto?: number
+          motivo_rechazo?: string | null
+          plan?: string
+          referencia?: string
+          revisado_at?: string | null
+          subscription_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_payments_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscriptions: {
+        Row: {
+          courier_id: string | null
+          created_at: string
+          id: string
+          plan: string
+          store_id: string | null
+          updated_at: string
+          vigente_hasta: string
+        }
+        Insert: {
+          courier_id?: string | null
+          created_at?: string
+          id?: string
+          plan?: string
+          store_id?: string | null
+          updated_at?: string
+          vigente_hasta: string
+        }
+        Update: {
+          courier_id?: string | null
+          created_at?: string
+          id?: string
+          plan?: string
+          store_id?: string | null
+          updated_at?: string
+          vigente_hasta?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_courier_id_fkey"
+            columns: ["courier_id"]
+            isOneToOne: true
+            referencedRelation: "couriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           created_at: string
@@ -645,15 +764,50 @@ export type Database = {
           tienda_telefono: string
         }[]
       }
+      get_order_payment_account: { Args: { p_order_id: string }; Returns: Json }
+      get_public_config: { Args: never; Returns: Json }
+      get_subscription_offer: { Args: never; Returns: Json }
       mark_refunded: { Args: { p_order_id: string }; Returns: undefined }
+      owns_subscription: {
+        Args: { p_subscription_id: string }
+        Returns: boolean
+      }
       payout_destination: {
         Args: { p_destino: string; p_store_id: string }
         Returns: Json
       }
       restore_order_stock: { Args: { p_order_id: string }; Returns: undefined }
+      review_subscription_payment: {
+        Args: { p_aprobar: boolean; p_motivo?: string; p_payment_id: string }
+        Returns: undefined
+      }
       store_advance_order: {
         Args: { p_order_id: string }
         Returns: Database["public"]["Enums"]["order_status"]
+      }
+      store_review_transfer: {
+        Args: { p_aprobar: boolean; p_motivo?: string; p_order_id: string }
+        Returns: undefined
+      }
+      submit_order_transfer: {
+        Args: {
+          p_comprobante_path: string
+          p_order_id: string
+          p_referencia: string
+        }
+        Returns: undefined
+      }
+      submit_subscription_payment: {
+        Args: {
+          p_comprobante_path: string
+          p_plan: string
+          p_referencia: string
+        }
+        Returns: string
+      }
+      subscription_ok: {
+        Args: { p_courier_id: string; p_store_id: string }
+        Returns: boolean
       }
       update_payout: {
         Args: {

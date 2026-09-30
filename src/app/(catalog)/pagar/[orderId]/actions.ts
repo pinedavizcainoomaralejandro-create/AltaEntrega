@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getPaymentMode, toCentavos } from "@/lib/payments/azul";
 import { recordApprovedPayment, recordFailedPayment } from "@/lib/payments/record";
+import { uploadComprobante, validateComprobante } from "@/lib/supabase/comprobantes";
+import { friendlyDbError } from "@/lib/errors";
 
 /**
  * Pago simulado (solo con AZUL_MODE=simulado, deshabilitado en producción):
@@ -41,4 +43,39 @@ export async function simulatePaymentAction(formData: FormData) {
 
   await recordFailedPayment(orderId);
   redirect(`/pedidos/${orderId}?pago=rechazado`);
+}
+
+export type TransferProofState = { error: string | null };
+
+/** Fase 1: el cliente sube el comprobante de su transferencia al negocio. */
+export async function submitOrderTransferAction(_prev: TransferProofState, formData: FormData): Promise<TransferProofState> {
+  const orderId = String(formData.get("orderId") ?? "");
+  const referencia = String(formData.get("referencia") ?? "").trim();
+  const file = formData.get("comprobante");
+
+  if (!referencia) return { error: "Escribe la referencia o número de tu transferencia." };
+  const invalid = validateComprobante(file);
+  if (invalid) return { error: invalid };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  let path: string;
+  try {
+    path = await uploadComprobante(supabase, `pedidos/${orderId}`, file as File);
+  } catch {
+    return { error: "No se pudo subir el comprobante. Inténtalo de nuevo." };
+  }
+
+  const { error } = await supabase.rpc("submit_order_transfer", {
+    p_order_id: orderId,
+    p_referencia: referencia,
+    p_comprobante_path: path,
+  });
+  if (error) return { error: friendlyDbError(error, "No se pudo enviar el comprobante.") };
+
+  redirect(`/pedidos/${orderId}?pago=comprobante`);
 }

@@ -4,6 +4,7 @@ import { MapPinIcon, SearchIcon } from "@/components/ui/icons";
 import { createClient } from "@/lib/supabase/server";
 import { escapeLike, quotePostgrestValue } from "@/lib/validation";
 import { CATEGORIAS, categoriasQueCoinciden, getCategoria } from "@/lib/categories";
+import { getPublicConfig } from "@/lib/config";
 
 export default async function CatalogHomePage({
   searchParams,
@@ -32,7 +33,7 @@ export default async function CatalogHomePage({
     );
   }
 
-  const { data: stores } = await query;
+  const [{ data: stores }, config] = await Promise.all([query, getPublicConfig(supabase)]);
 
   const pasos = [
     {
@@ -42,8 +43,11 @@ export default async function CatalogHomePage({
     },
     {
       img: "/images/restaurante.svg",
-      titulo: "Arma tu pedido y paga seguro",
-      texto: "Pagas con tarjeta en la página segura de AZUL (Banco Popular).",
+      titulo: "Arma tu pedido y paga",
+      texto:
+        config.fase === "azul"
+          ? "Pagas con tarjeta en la página segura de AZUL (Banco Popular)."
+          : "Le transfieres al negocio desde tu banco y subes el comprobante. Sin costo extra por usar AltaEntrega.",
     },
     {
       img: "/images/repartidor.svg",

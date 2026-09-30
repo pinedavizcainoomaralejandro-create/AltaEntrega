@@ -5,6 +5,7 @@ import BankAccountForm from "@/components/pagos/BankAccountForm";
 import AdminActionButton from "./AdminActionButton";
 import PayoutCompleteForm from "./PayoutCompleteForm";
 import PlatformSettingsForm from "./PlatformSettingsForm";
+import SubscriptionsAdmin from "./SubscriptionsAdmin";
 
 type Cuenta = { banco: string; tipo_cuenta: string; numero_cuenta: string; titular: string; documento: string };
 
@@ -25,7 +26,7 @@ export default async function PaymentsAdmin({ configResult }: { configResult?: s
     supabase
       .from("platform_settings")
       .select(
-        "commission_rate, delivery_fee, ganancias_banco, ganancias_tipo_cuenta, ganancias_numero_cuenta, ganancias_titular, ganancias_documento"
+        "fase, commission_rate, delivery_fee, precio_negocio_mensual, precio_delivery_mensual, descuento_anual, dias_prueba, dias_gracia, horas_para_transferir, ganancias_banco, ganancias_tipo_cuenta, ganancias_numero_cuenta, ganancias_titular, ganancias_documento"
       )
       .maybeSingle(),
     supabase
@@ -103,23 +104,23 @@ export default async function PaymentsAdmin({ configResult }: { configResult?: s
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="card p-6">
-          <h2 className="mb-4 font-display text-xl font-semibold">Comisión y delivery</h2>
-          {settings ? (
-            <PlatformSettingsForm
-              commissionRate={settings.commission_rate}
-              deliveryFee={settings.delivery_fee}
-              result={configResult}
-            />
-          ) : (
-            <p className="text-sm text-red-600">No se pudo cargar la configuración.</p>
-          )}
-        </div>
+      <div className="card p-6">
+        <h2 className="mb-4 font-display text-xl font-semibold">Configuración de cobro</h2>
+        {settings ? (
+          <PlatformSettingsForm settings={settings} result={configResult} />
+        ) : (
+          <p className="text-sm text-red-600">No se pudo cargar la configuración.</p>
+        )}
+      </div>
+
+      <SubscriptionsAdmin />
+
+      <div className="grid gap-6">
         <div className="card p-6">
           <h2 className="font-display text-xl font-semibold">Tu cuenta de ganancias</h2>
           <p className="mb-4 mt-1 text-sm text-stone-500">
-            A esta cuenta va la parte de la plataforma de cada cobro, en el mismo momento en que el cliente paga.
+            Aquí te transfieren los negocios y repartidores sus suscripciones (fase 1), y aquí va la comisión de cada
+            cobro con tarjeta (fase 2).
           </p>
           <BankAccountForm
             action={saveGananciasAccountAction}

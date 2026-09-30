@@ -6,6 +6,7 @@ import PaymentResultBanner from "@/components/pagos/PaymentResultBanner";
 
 const ESTADO_PAGO_LABEL: Record<string, string> = {
   pendiente: "Pendiente de pago",
+  por_confirmar: "Transferencia enviada, el negocio la está confirmando",
   pagado: "Pagado",
   rechazado: "Pago rechazado",
   expirado: "Pago no completado",
@@ -30,7 +31,7 @@ export default async function PedidoDetallePage({
 
   const { data: order } = await supabase
     .from("orders")
-    .select("id, codigo, store_id, direccion_entrega, subtotal, delivery_fee, total, estado, estado_pago, created_at")
+    .select("id, codigo, store_id, direccion_entrega, subtotal, delivery_fee, total, estado, estado_pago, metodo_pago, created_at")
     .eq("id", orderId)
     .eq("cliente_id", user.id)
     .maybeSingle();
@@ -81,7 +82,7 @@ export default async function PedidoDetallePage({
           ))}
         </ul>
         <div className="mt-2 flex justify-between border-t border-stone-100 pt-2 text-sm">
-          <span>Pagado con tarjeta</span>
+          <span>{order.metodo_pago === "transferencia" ? "Por transferencia al negocio" : "Con tarjeta"}</span>
           <span>RD${order.subtotal.toFixed(2)}</span>
         </div>
         <div className="flex justify-between text-sm text-stone-600">
@@ -93,12 +94,12 @@ export default async function PedidoDetallePage({
           <span>RD${order.total.toFixed(2)}</span>
         </div>
         <p className="mt-1 text-xs text-stone-400">{ESTADO_PAGO_LABEL[order.estado_pago] ?? order.estado_pago}</p>
-        {order.estado === "esperando_pago" && (
+        {order.estado === "esperando_pago" && order.estado_pago !== "por_confirmar" && (
           <Link
             href={`/pagar/${order.id}`}
             className="mt-3 inline-block btn-primary"
           >
-            Completar el pago
+            {order.metodo_pago === "transferencia" ? "Transferir y enviar comprobante" : "Completar el pago"}
           </Link>
         )}
       </div>

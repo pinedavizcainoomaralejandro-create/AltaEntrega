@@ -30,11 +30,14 @@ export default function CarritoPage() {
   const supabase = useMemo(() => createClient(), []);
   const [notices, setNotices] = useState<string[]>([]);
   const [deliveryFee, setDeliveryFee] = useState<number | null>(null);
+  const [fase, setFase] = useState<"suscripciones" | "azul">("suscripciones");
 
-  // Tarifa de delivery vigente (la define el admin).
+  // Tarifa de delivery y fase de cobro vigentes (las define el admin).
   useEffect(() => {
-    supabase.rpc("get_delivery_fee").then(({ data }) => {
-      if (typeof data === "number") setDeliveryFee(data);
+    supabase.rpc("get_public_config").then(({ data }) => {
+      const c = data as { fase?: string; delivery_fee?: number } | null;
+      if (typeof c?.delivery_fee === "number") setDeliveryFee(c.delivery_fee);
+      if (c?.fase === "azul") setFase("azul");
     });
   }, [supabase]);
 
@@ -126,7 +129,7 @@ export default function CarritoPage() {
 
       <div className="mb-6 flex flex-col gap-1 text-sm">
         <div className="flex justify-between text-base font-semibold">
-          <span>Pagas ahora con tarjeta</span>
+          <span>{fase === "azul" ? "Pagas ahora con tarjeta" : "Transfieres al negocio"}</span>
           <span>RD${cart.total.toFixed(2)}</span>
         </div>
         <div className="flex justify-between text-stone-600">
@@ -161,7 +164,9 @@ export default function CarritoPage() {
         </div>
 
         <p className="text-xs text-stone-500">
-          Los productos los pagas con tarjeta en el siguiente paso, en la página segura de AZUL. El delivery se lo pagas en efectivo al repartidor.
+          {fase === "azul"
+            ? "Los productos los pagas con tarjeta en el siguiente paso, en la página segura de AZUL. El delivery se lo pagas en efectivo al repartidor."
+            : "En el siguiente paso verás la cuenta del negocio para transferirle los productos y subir tu comprobante. El delivery se lo pagas en efectivo al repartidor."}
         </p>
 
         {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
