@@ -40,3 +40,6 @@ supabase/.temp/
 
 # claude code (permisos locales)
 .claude/settings.local.json
+
+# Local Netlify folder
+.netlify
