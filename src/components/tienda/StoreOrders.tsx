@@ -21,6 +21,7 @@ type StoreOrder = {
   codigo: string;
   subtotal: number;
   metodo_pago: string;
+  estado_pago: string;
   montoTienda: number | null;
   id: string;
   direccion_entrega: string;
@@ -48,7 +49,7 @@ export default function StoreOrders({ storeId }: { storeId: string }) {
   const refresh = useCallback(async () => {
     const { data, error: queryError } = await supabase
       .from("orders")
-      .select("id, codigo, subtotal, metodo_pago, direccion_entrega, estado, courier_id, created_at")
+      .select("id, codigo, subtotal, metodo_pago, estado_pago, direccion_entrega, estado, courier_id, created_at")
       .eq("store_id", storeId)
       // Solo pedidos pagados: los que esperan pago, se rechazaron o expiraron
       // nunca le llegaron a la tienda.
@@ -128,6 +129,20 @@ export default function StoreOrders({ storeId }: { storeId: string }) {
     refresh();
   }
 
+  async function marcarDevuelto(orderId: string) {
+    const referencia = prompt("Referencia de la transferencia con la que devolviste el dinero:");
+    if (referencia === null) return;
+    setError(null);
+    setBusyId(orderId);
+    const { error: rpcError } = await supabase.rpc("store_mark_refunded", {
+      p_order_id: orderId,
+      p_referencia: referencia,
+    });
+    setBusyId(null);
+    if (rpcError) setError(friendlyDbError(rpcError));
+    refresh();
+  }
+
   async function run(orderId: string, fn: "store_advance_order" | "cancel_order") {
     setError(null);
     setBusyId(orderId);
@@ -141,6 +156,8 @@ export default function StoreOrders({ storeId }: { storeId: string }) {
     return error ? <p className="text-sm text-red-600">{error}</p> : <p className="text-sm text-stone-500">Cargando...</p>;
   }
 
+  // Fase 1: el cliente le transfirió al negocio, así que el negocio devuelve.
+  const devoluciones = orders.filter((o) => o.metodo_pago === "transferencia" && o.estado_pago === "reembolso_pendiente");
   const active = orders.filter((o) => ACTIVE.includes(o.estado));
   const finished = orders.filter((o) => !ACTIVE.includes(o.estado));
 
@@ -242,6 +259,36 @@ export default function StoreOrders({ storeId }: { storeId: string }) {
                     No llegó
                   </button>
                 </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {devoluciones.length > 0 && (
+        <section className="rounded-2xl border border-red-200 bg-red-50 p-4">
+          <h2 className="mb-1 font-display text-xl font-semibold">Devoluciones pendientes ({devoluciones.length})</h2>
+          <p className="mb-3 text-sm text-stone-600">
+            Estos pedidos se cancelaron después de que el cliente te transfirió. Devuélvele el dinero y registra la
+            referencia. En &quot;Ver detalle&quot; tienes su teléfono.
+          </p>
+          <div className="flex flex-col gap-3">
+            {devoluciones.map((o) => (
+              <div key={o.id} className="card flex flex-col gap-2 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-sm font-medium">
+                    Pedido {o.codigo} · <span className="font-display text-lg">RD${o.subtotal.toFixed(2)}</span>
+                  </p>
+                  <button
+                    type="button"
+                    disabled={busyId === o.id}
+                    onClick={() => marcarDevuelto(o.id)}
+                    className="btn-primary btn-sm"
+                  >
+                    {busyId === o.id ? "Guardando..." : "Ya lo devolví"}
+                  </button>
+                </div>
+                <OrderDetails orderId={o.id} show={{ cliente: true }} />
               </div>
             ))}
           </div>

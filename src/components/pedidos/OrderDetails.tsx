@@ -34,7 +34,7 @@ export default function OrderDetails({
 
     (async () => {
       const [{ data: rows, error: itemsError }, { data: contactRows, error: contactsError }] = await Promise.all([
-        supabase.from("order_items").select("id, product_id, cantidad, precio_unitario").eq("order_id", orderId),
+        supabase.from("order_items").select("id, nombre, cantidad, precio_unitario").eq("order_id", orderId),
         supabase.rpc("get_order_contacts", { p_order_id: orderId }),
       ]);
 
@@ -43,20 +43,7 @@ export default function OrderDetails({
         return;
       }
 
-      const productIds = (rows ?? []).map((r) => r.product_id);
-      const { data: products } = productIds.length
-        ? await supabase.from("catalog_products").select("id, nombre").in("id", productIds)
-        : { data: [] as { id: string; nombre: string }[] };
-      const nameById = new Map((products ?? []).map((p) => [p.id, p.nombre] as const));
-
-      setItems(
-        (rows ?? []).map((r) => ({
-          id: r.id,
-          cantidad: r.cantidad,
-          precio_unitario: r.precio_unitario,
-          nombre: nameById.get(r.product_id) ?? "Producto",
-        }))
-      );
+      setItems(rows ?? []);
       setContacts(contactRows?.[0] ?? null);
     })();
   }, [open, items, orderId, supabase]);

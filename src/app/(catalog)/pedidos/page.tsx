@@ -14,7 +14,7 @@ export default async function PedidosPage() {
 
   const { data: orders } = await supabase
     .from("orders")
-    .select("id, store_id, estado, total, metodo_pago, created_at")
+    .select("id, tienda_nombre, estado, total, metodo_pago, created_at")
     .eq("cliente_id", user.id)
     // Oculta los intentos de pago que no se completaron (rechazados, expirados
     // o cancelados antes de pagar); los que esperan pago sí se muestran.
@@ -36,10 +36,6 @@ export default async function PedidosPage() {
     );
   }
 
-  const storeIds = Array.from(new Set(orders.map((o) => o.store_id)));
-  const { data: stores } = await supabase.from("stores").select("id, nombre").in("id", storeIds);
-  const nameById = new Map((stores ?? []).map((s) => [s.id, s.nombre] as const));
-
   return (
     <div>
       <h1 className="mb-6 font-display text-3xl font-semibold tracking-tight">Mis pedidos</h1>
@@ -51,7 +47,7 @@ export default async function PedidosPage() {
             className="flex items-center justify-between gap-3 card p-4 hover:border-stone-400"
           >
             <div className="min-w-0">
-              <p className="truncate font-medium">{nameById.get(o.store_id) ?? "Tienda"}</p>
+              <p className="truncate font-medium">{o.tienda_nombre}</p>
               <p className="text-xs text-stone-400">{formatFecha(o.created_at)}</p>
             </div>
             <div className="shrink-0 text-right">

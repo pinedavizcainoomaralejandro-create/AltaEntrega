@@ -519,5 +519,63 @@ update public.couriers set disponible = true where id = '00000000-0000-0000-0000
 set role authenticated;
 select pg_temp.expect_error(format('select public.claim_order(%L)', current_setting('test.order7')), 'suscripción está vencida');
 
+-- El pedido guarda el nombre y la dirección del negocio y el nombre de cada producto
+do $$ declare o public.orders%rowtype; begin
+  select * into o from public.orders where id = current_setting('test.order7')::uuid;
+  if o.tienda_nombre <> 'Boutique' or o.tienda_direccion <> 'Calle Duarte 1' then
+    raise exception 'El pedido no guardó el nombre y la dirección del negocio';
+  end if;
+  if (select nombre from public.order_items where order_id = o.id) <> 'Blusa' then
+    raise exception 'La línea del pedido no guardó el nombre del producto';
+  end if;
+end $$;
+
+-- Con el negocio pausado, el cliente sigue viendo los nombres en su pedido
+reset role;
+update public.subscriptions set vigente_hasta = now() - interval '10 days'
+where store_id = '00000000-0000-0000-0000-0000000000a1';
+update public.users set telefono = '8095550009' where id = '00000000-0000-0000-0000-00000000000d';
+set role authenticated;
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000d');
+do $$ begin
+  if exists (select 1 from public.stores) then raise exception 'El negocio pausado debería estar oculto'; end if;
+  if (select tienda_nombre from public.orders where id = current_setting('test.order7')::uuid) <> 'Boutique'
+     or (select nombre from public.order_items where order_id = current_setting('test.order7')::uuid) <> 'Blusa' then
+    raise exception 'El cliente perdió los nombres de su pedido con el negocio pausado';
+  end if;
+end $$;
+
+-- El negocio cancela un pedido pagado por transferencia: devuelve el dinero y lo marca
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000b');
+select public.cancel_order(current_setting('test.order7')::uuid);
+do $$ begin
+  if (select estado_pago from public.orders where id = current_setting('test.order7')::uuid) <> 'reembolso_pendiente' then
+    raise exception 'Cancelar un pedido pagado por transferencia debe dejar el reembolso pendiente';
+  end if;
+  if (select cliente_telefono from public.get_order_contacts(current_setting('test.order7')::uuid)) is null then
+    raise exception 'El negocio necesita el teléfono del cliente para devolverle el dinero';
+  end if;
+end $$;
+select pg_temp.expect_error(format('select public.store_mark_refunded(%L, %L)', current_setting('test.order7'), ' '),
+  'referencia de la devolución');
+select pg_temp.expect_error(format('select public.store_mark_refunded(%L, %L)', current_setting('test.order4'), 'X'),
+  'lo gestiona AltaEntrega');
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000d');
+select pg_temp.expect_error(format('select public.store_mark_refunded(%L, %L)', current_setting('test.order7'), 'X'),
+  'no pertenece a tu negocio');
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000b');
+select public.store_mark_refunded(current_setting('test.order7')::uuid, 'DEV-1');
+do $$ declare o public.orders%rowtype; begin
+  select * into o from public.orders where id = current_setting('test.order7')::uuid;
+  if o.estado_pago <> 'reembolsado' or o.reembolso_referencia <> 'DEV-1' or o.reembolsado_at is null then
+    raise exception 'El reembolso del negocio no quedó registrado';
+  end if;
+  if (select cliente_telefono from public.get_order_contacts(o.id)) is not null then
+    raise exception 'Tras el reembolso el negocio ya no debe ver el teléfono del cliente';
+  end if;
+end $$;
+select pg_temp.expect_error(format('select public.store_mark_refunded(%L, %L)', current_setting('test.order7'), 'DEV-2'),
+  'no tiene un reembolso pendiente');
+
 reset role;
 \echo 'OK: todas las pruebas de base de datos pasaron'

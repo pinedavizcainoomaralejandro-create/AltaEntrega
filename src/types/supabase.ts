@@ -110,6 +110,7 @@ export type Database = {
         Row: {
           cantidad: number
           id: string
+          nombre: string
           order_id: string
           precio_unitario: number
           product_id: string
@@ -117,6 +118,7 @@ export type Database = {
         Insert: {
           cantidad: number
           id?: string
+          nombre: string
           order_id: string
           precio_unitario: number
           product_id: string
@@ -124,6 +126,7 @@ export type Database = {
         Update: {
           cantidad?: number
           id?: string
+          nombre?: string
           order_id?: string
           precio_unitario?: number
           product_id?: string
@@ -247,8 +250,12 @@ export type Database = {
           pago_autorizacion: string | null
           pago_motivo_rechazo: string | null
           pago_referencia: string | null
+          reembolsado_at: string | null
+          reembolso_referencia: string | null
           store_id: string
           subtotal: number
+          tienda_direccion: string
+          tienda_nombre: string
           total: number
           updated_at: string
         }
@@ -269,8 +276,12 @@ export type Database = {
           pago_autorizacion?: string | null
           pago_motivo_rechazo?: string | null
           pago_referencia?: string | null
+          reembolsado_at?: string | null
+          reembolso_referencia?: string | null
           store_id: string
           subtotal: number
+          tienda_direccion: string
+          tienda_nombre: string
           total: number
           updated_at?: string
         }
@@ -291,8 +302,12 @@ export type Database = {
           pago_autorizacion?: string | null
           pago_motivo_rechazo?: string | null
           pago_referencia?: string | null
+          reembolsado_at?: string | null
+          reembolso_referencia?: string | null
           store_id?: string
           subtotal?: number
+          tienda_direccion?: string
+          tienda_nombre?: string
           total?: number
           updated_at?: string
         }
@@ -784,6 +799,10 @@ export type Database = {
       store_advance_order: {
         Args: { p_order_id: string }
         Returns: Database["public"]["Enums"]["order_status"]
+      }
+      store_mark_refunded: {
+        Args: { p_order_id: string; p_referencia: string }
+        Returns: undefined
       }
       store_review_transfer: {
         Args: { p_aprobar: boolean; p_motivo?: string; p_order_id: string }

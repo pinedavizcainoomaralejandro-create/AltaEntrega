@@ -31,25 +31,19 @@ export default async function PedidoDetallePage({
 
   const { data: order } = await supabase
     .from("orders")
-    .select("id, codigo, store_id, direccion_entrega, subtotal, delivery_fee, total, estado, estado_pago, metodo_pago, created_at")
+    .select(
+      "id, codigo, tienda_nombre, direccion_entrega, subtotal, delivery_fee, total, estado, estado_pago, metodo_pago, reembolso_referencia, created_at"
+    )
     .eq("id", orderId)
     .eq("cliente_id", user.id)
     .maybeSingle();
 
   if (!order) notFound();
 
-  const { data: store } = await supabase.from("stores").select("nombre").eq("id", order.store_id).maybeSingle();
-
   const { data: items } = await supabase
     .from("order_items")
-    .select("id, product_id, cantidad, precio_unitario")
+    .select("id, nombre, cantidad, precio_unitario")
     .eq("order_id", order.id);
-
-  const productIds = (items ?? []).map((i) => i.product_id);
-  const { data: products } = productIds.length
-    ? await supabase.from("catalog_products").select("id, nombre").in("id", productIds)
-    : { data: [] as { id: string; nombre: string }[] };
-  const productNameById = new Map((products ?? []).map((p) => [p.id, p.nombre] as const));
 
   const { data: history } = await supabase
     .from("order_status_history")
@@ -65,7 +59,7 @@ export default async function PedidoDetallePage({
 
       <PaymentResultBanner pago={pago} />
 
-      <h1 className="mb-1 font-display text-3xl font-semibold tracking-tight">{store?.nombre ?? "Tienda"}</h1>
+      <h1 className="mb-1 font-display text-3xl font-semibold tracking-tight">{order.tienda_nombre}</h1>
       <p className="text-xs text-stone-400">Pedido {order.codigo}</p>
       <p className="mb-6 text-sm text-stone-500">{order.direccion_entrega}</p>
 
@@ -75,7 +69,7 @@ export default async function PedidoDetallePage({
           {(items ?? []).map((i) => (
             <li key={i.id} className="flex justify-between gap-2">
               <span className="min-w-0 truncate">
-                {i.cantidad}× {productNameById.get(i.product_id) ?? "Producto"}
+                {i.cantidad}× {i.nombre}
               </span>
               <span className="shrink-0">RD${(i.precio_unitario * i.cantidad).toFixed(2)}</span>
             </li>
@@ -94,6 +88,14 @@ export default async function PedidoDetallePage({
           <span>RD${order.total.toFixed(2)}</span>
         </div>
         <p className="mt-1 text-xs text-stone-400">{ESTADO_PAGO_LABEL[order.estado_pago] ?? order.estado_pago}</p>
+        {order.metodo_pago === "transferencia" && order.estado_pago === "reembolso_pendiente" && (
+          <p className="mt-2 rounded-xl bg-sol-50 p-3 text-sm text-stone-700">
+            El negocio te devolverá RD${order.subtotal.toFixed(2)} por transferencia y te contactará para coordinarlo.
+          </p>
+        )}
+        {order.estado_pago === "reembolsado" && order.reembolso_referencia && (
+          <p className="mt-1 text-xs text-stone-500">Referencia de la devolución: {order.reembolso_referencia}</p>
+        )}
         {order.estado === "esperando_pago" && order.estado_pago !== "por_confirmar" && (
           <Link
             href={`/pagar/${order.id}`}

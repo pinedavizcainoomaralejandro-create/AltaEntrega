@@ -6,12 +6,11 @@ import { friendlyDbError } from "@/lib/errors";
 
 type PoolOrder = {
   id: string;
-  store_id: string;
+  tienda_nombre: string;
+  tienda_direccion: string;
   direccion_entrega: string;
   delivery_fee: number;
   created_at: string;
-  storeNombre: string;
-  storeDireccion: string;
 };
 
 export default function OrdersPool() {
@@ -23,28 +22,13 @@ export default function OrdersPool() {
   const refresh = useCallback(async () => {
     const { data: rows } = await supabase
       .from("orders")
-      .select("id, store_id, direccion_entrega, delivery_fee, created_at")
+      .select("id, tienda_nombre, tienda_direccion, direccion_entrega, delivery_fee, created_at")
       // La bolsa muestra pedidos ya confirmados por la tienda.
       .in("estado", ["confirmado", "preparando"])
       .is("courier_id", null)
       .order("created_at", { ascending: true });
 
-    if (!rows || rows.length === 0) {
-      setOrders([]);
-      return;
-    }
-
-    const storeIds = Array.from(new Set(rows.map((r) => r.store_id)));
-    const { data: stores } = await supabase.from("stores").select("id, nombre, direccion").in("id", storeIds);
-    const storeById = new Map((stores ?? []).map((s) => [s.id, s] as const));
-
-    setOrders(
-      rows.map((r) => ({
-        ...r,
-        storeNombre: storeById.get(r.store_id)?.nombre ?? "Tienda",
-        storeDireccion: storeById.get(r.store_id)?.direccion ?? "",
-      }))
-    );
+    setOrders(rows ?? []);
   }, [supabase]);
 
   useEffect(() => {
@@ -101,8 +85,8 @@ export default function OrdersPool() {
         orders.map((o) => (
           <div key={o.id} className="flex items-center justify-between gap-3 card p-3">
             <div className="min-w-0">
-              <p className="font-medium">{o.storeNombre}</p>
-              <p className="truncate text-sm text-stone-500">Recoger: {o.storeDireccion}</p>
+              <p className="font-medium">{o.tienda_nombre}</p>
+              <p className="truncate text-sm text-stone-500">Recoger: {o.tienda_direccion}</p>
               <p className="truncate text-sm text-stone-500">Entregar: {o.direccion_entrega}</p>
               <p className="text-xs text-stone-400">
                 Cobras RD${o.delivery_fee.toFixed(2)} en efectivo al entregar (es tuyo)

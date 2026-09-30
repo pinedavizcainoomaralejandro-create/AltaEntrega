@@ -8,12 +8,11 @@ import OrderDetails from "@/components/pedidos/OrderDetails";
 
 type AssignedOrder = {
   id: string;
-  store_id: string;
+  tienda_nombre: string;
   direccion_entrega: string;
   delivery_fee: number;
   estado: OrderStatus;
   created_at: string;
-  storeNombre: string;
 };
 
 // El repartidor solo avanza desde "preparando"; antes, la tienda está confirmando y preparando.
@@ -41,21 +40,12 @@ export default function MyDeliveries({ courierId }: { courierId: string }) {
   const refresh = useCallback(async () => {
     const { data: rows } = await supabase
       .from("orders")
-      .select("id, store_id, direccion_entrega, delivery_fee, estado, created_at")
+      .select("id, tienda_nombre, direccion_entrega, delivery_fee, estado, created_at")
       .eq("courier_id", courierId)
       .neq("estado", "cancelado")
       .order("created_at", { ascending: false });
 
-    if (!rows || rows.length === 0) {
-      setOrders([]);
-      return;
-    }
-
-    const storeIds = Array.from(new Set(rows.map((r) => r.store_id)));
-    const { data: stores } = await supabase.from("stores").select("id, nombre").in("id", storeIds);
-    const nameById = new Map((stores ?? []).map((s) => [s.id, s.nombre] as const));
-
-    setOrders(rows.map((r) => ({ ...r, storeNombre: nameById.get(r.store_id) ?? "Tienda" })));
+    setOrders(rows ?? []);
   }, [supabase, courierId]);
 
   useEffect(() => {
@@ -107,7 +97,7 @@ export default function MyDeliveries({ courierId }: { courierId: string }) {
             <div key={o.id} className="flex flex-col gap-2 card p-3">
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <p className="font-medium">{o.storeNombre}</p>
+                <p className="font-medium">{o.tienda_nombre}</p>
                 <p className="truncate text-sm text-stone-500">{o.direccion_entrega}</p>
                 <p className="text-xs text-stone-400">
                   Cobra RD${o.delivery_fee.toFixed(2)} en efectivo · {STATUS_LABEL[o.estado]}
