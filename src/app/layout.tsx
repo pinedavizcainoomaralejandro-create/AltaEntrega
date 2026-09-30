@@ -17,7 +17,6 @@ export const metadata: Metadata = {
   applicationName: "AltaEntrega",
   // iPhone: al agregarla a la pantalla de inicio abre sin barra de Safari.
   appleWebApp: { capable: true, title: "AltaEntrega", statusBarStyle: "default" },
-  icons: { apple: "/icons/apple-touch-icon.png" },
   formatDetection: { telephone: false },
 };
 
