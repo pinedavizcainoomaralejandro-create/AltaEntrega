@@ -43,3 +43,6 @@ supabase/.temp/
 
 # Local Netlify folder
 .netlify
+
+# lockfile generado por el build de Netlify (edge functions)
+deno.lock
