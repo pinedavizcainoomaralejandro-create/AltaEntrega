@@ -4,3 +4,33 @@
 
 [build.environment]
   NODE_VERSION = "22"
+
+# Límite de peticiones por IP (rate limiting de Netlify). Netlify ya frena los
+# ataques DDoS de red en su CDN; estas reglas frenan el abuso de la app: robo de
+# contraseñas por fuerza bruta, registros en masa y scrapers. El plan gratis
+# permite 2 reglas. Los límites son altos porque en RD muchos celulares salen a
+# internet por la misma IP de su compañía (CGNAT).
+#
+# Acceso: login, registro y recuperar contraseña (los formularios hacen POST a
+# la misma ruta). 60 peticiones por minuto por IP.
+[[redirects]]
+  from = "/login"
+  to = "/login"
+  status = 200
+  force = false
+  [redirects.rate_limit]
+    window_limit = 60
+    window_size = 60
+    aggregate_by = ["ip", "domain"]
+
+# Todo el sitio: 600 peticiones por minuto por IP. Una página carga varios
+# archivos (_next/static, imágenes), así que el margen es amplio.
+[[redirects]]
+  from = "/*"
+  to = "/:splat"
+  status = 200
+  force = false
+  [redirects.rate_limit]
+    window_limit = 600
+    window_size = 60
+    aggregate_by = ["ip", "domain"]

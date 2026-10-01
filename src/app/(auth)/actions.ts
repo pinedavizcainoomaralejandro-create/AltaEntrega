@@ -12,6 +12,13 @@ import type { UserRole } from "@/types/database";
 export type AuthFormState = { error: string | null } & FormValues;
 
 
+// La URL de los enlaces de correo sale de la configuración, no del header
+// Origin (que manda el navegador y un atacante puede cambiar). Sin
+// NEXT_PUBLIC_SITE_URL se usa el origen de la petición, solo aceptable en desarrollo.
+async function siteOrigin() {
+  return process.env.NEXT_PUBLIC_SITE_URL ?? (await headers()).get("origin") ?? "http://localhost:3000";
+}
+
 async function signUpInner(
   _prevState: AuthFormState,
   formData: FormData
@@ -50,7 +57,9 @@ async function signUpInner(
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { nombre, telefono, rol } },
+    // Sin esto el enlace del correo usa el Site URL de Supabase, que puede
+    // seguir apuntando a localhost.
+    options: { data: { nombre, telefono, rol }, emailRedirectTo: `${await siteOrigin()}/auth/callback` },
   });
 
   if (error) return { error: friendlyAuthError(error) };
@@ -121,14 +130,8 @@ async function requestPasswordResetInner(
   if (!EMAIL_RE.test(email)) return { error: "Escribe un email válido.", message: null };
 
   const supabase = await createClient();
-  // La URL del enlace sale de la configuración, no del header Origin (que
-  // manda el navegador y un atacante puede cambiar). Sin NEXT_PUBLIC_SITE_URL
-  // se usa el origen de la petición, solo aceptable en desarrollo.
-  const origin =
-    process.env.NEXT_PUBLIC_SITE_URL ?? (await headers()).get("origin") ?? "http://localhost:3000";
-
   await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${origin}/auth/callback?next=/reset-password`,
+    redirectTo: `${await siteOrigin()}/auth/callback?next=/reset-password`,
   });
 
   // Mismo mensaje exista o no la cuenta, para no revelar qué emails están registrados.
