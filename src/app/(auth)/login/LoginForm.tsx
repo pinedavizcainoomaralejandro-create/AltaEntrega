@@ -7,6 +7,7 @@ import { useSearchParams } from "next/navigation";
 import { loginAction, type AuthFormState } from "../actions";
 import AuthShell from "@/components/brand/AuthShell";
 import PasswordInput from "@/components/PasswordInput";
+import AppDownloadBanner from "@/components/AppDownloadBanner";
 
 const initialState: AuthFormState = { error: null };
 
@@ -74,6 +75,8 @@ export default function LoginForm() {
           Regístrate
         </Link>
       </p>
+
+      <AppDownloadBanner />
     </AuthShell>
   );
 }
