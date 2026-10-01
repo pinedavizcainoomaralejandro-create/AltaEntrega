@@ -1,6 +1,57 @@
 # AltaEntrega
 
-Plataforma de boutiques y delivery en Villa Altagracia. Next.js 16 (App Router) + React 19 + TypeScript + Tailwind CSS + Supabase (Auth, Postgres con RLS, Storage y Realtime).
+[![CI](https://github.com/pinedavizcainoomaralejandro-create/AltaEntrega/actions/workflows/ci.yml/badge.svg)](https://github.com/pinedavizcainoomaralejandro-create/AltaEntrega/actions/workflows/ci.yml)
+![Next.js 16](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
+![React 19](https://img.shields.io/badge/React-19-149eca?logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?logo=typescript&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20RLS-3ecf8e?logo=supabase&logoColor=white)
+![Capacitor](https://img.shields.io/badge/Capacitor-Android%20%2B%20iOS-119eff?logo=capacitor&logoColor=white)
+
+**Pedidos y delivery para los negocios de Villa Altagracia, República Dominicana.** Restaurantes, puestos de empanadas, cafeterías, panaderías, reposterías y boutiques publican sus productos; los clientes piden desde el celular y un repartidor local los entrega.
+
+**Demo en producción:** https://altaentrega.netlify.app
+
+| Catálogo | Acceso |
+|---|---|
+| ![Catálogo de negocios de AltaEntrega](docs/screenshots/catalogo.jpg) | ![Pantalla de inicio de sesión de AltaEntrega](docs/screenshots/login.jpg) |
+
+## Qué hace
+
+Una sola plataforma con cuatro roles, cada uno con su propio panel:
+
+- **Cliente:** busca por categoría o producto, arma el carrito, paga y sigue el pedido en vivo.
+- **Negocio:** gestiona productos con fotos, recibe pedidos en tiempo real y los confirma y prepara.
+- **Repartidor:** ve la bolsa de pedidos listos, acepta uno y lo lleva hasta la entrega.
+- **Administrador:** aprueba negocios y repartidores, ve métricas, controla pedidos y configura el cobro.
+
+También se instala como PWA y tiene apps nativas para Android e iOS con Capacitor.
+
+## Aspectos técnicos destacados
+
+- **Seguridad en la base de datos, no solo en el frontend.** Todas las tablas usan Row Level Security de Postgres. Los pedidos solo cambian a través de funciones SQL `SECURITY DEFINER` que validan rol y estado. Nadie puede registrarse como admin ni cambiarse de rol.
+- **Concurrencia resuelta en SQL.** El checkout bloquea filas para no vender stock que no existe. Si dos repartidores aceptan el mismo pedido a la vez, `claim_order` solo se lo da a uno.
+- **Tiempo real.** Cliente, negocio y repartidor ven cada cambio de estado al instante con Supabase Realtime.
+- **Pagos y contabilidad.** Integración con la pasarela AZUL, comisión de la plataforma calculada en la base y libro contable (`ledger_entries`) con el reparto a cada negocio. Hoy funciona con transferencias y suscripciones; el cobro con tarjeta queda listo para una fase posterior.
+- **Pruebas y CI.** Pruebas unitarias con Vitest y pruebas de reglas de negocio y seguridad contra un Postgres real. GitHub Actions corre lint, typecheck, pruebas, build y pruebas de base de datos en cada push.
+- **Producción.** Desplegado en Netlify, con cabeceras de seguridad (CSP), límite de peticiones por IP y 24 migraciones SQL versionadas.
+
+## Stack
+
+| Capa | Tecnología |
+|---|---|
+| Frontend | Next.js 16 (App Router, Server Actions), React 19, TypeScript, Tailwind CSS |
+| Backend | Supabase: Auth, Postgres con RLS, funciones SQL, Storage y Realtime |
+| Móvil | PWA y Capacitor 8 (Android e iOS) |
+| Calidad | Vitest, pruebas SQL, ESLint, GitHub Actions |
+| Infraestructura | Netlify |
+
+## Autor
+
+**Omar Alejandro Pineda Vizcaíno**. Diseño, desarrollo y despliegue del proyecto completo.
+
+---
+
+Lo que sigue es la documentación técnica para correr el proyecto.
 
 ## Setup
 

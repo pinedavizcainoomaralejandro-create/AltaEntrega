@@ -41,6 +41,11 @@ const nextConfig = {
   experimental: {
     serverActions: { bodySizeLimit: "6mb" },
   },
+  // En Netlify el optimizador de imágenes devuelve 400 ("isn't a valid
+  // image") y /.netlify/images pasa por proxy.ts, que redirige a /login. Las
+  // imágenes se sirven tal cual: las locales son pequeñas y las de productos
+  // ya están limitadas a 5 MB.
+  images: { unoptimized: true },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
