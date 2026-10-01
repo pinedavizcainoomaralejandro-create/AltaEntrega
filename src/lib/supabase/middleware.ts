@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/types/database";
 
-const PUBLIC_PATHS = ["/", "/login", "/register", "/carrito", "/forgot-password"];
+const PUBLIC_PATHS = ["/", "/login", "/register", "/carrito", "/forgot-password", "/privacidad"];
 
 function isPublicPath(pathname: string) {
   return (
@@ -22,6 +22,7 @@ function isCatalogPath(pathname: string) {
   return (
     pathname.startsWith("/tiendas/") ||
     pathname === "/carrito" ||
+    pathname === "/privacidad" ||
     pathname.startsWith("/auth/") ||
     pathname === "/forgot-password"
   );

@@ -113,6 +113,14 @@ export default function RegisterPage() {
 
         {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
 
+        <p className="text-xs text-stone-500">
+          Al crear tu cuenta aceptas nuestra{" "}
+          <Link href="/privacidad" className="link">
+            política de privacidad
+          </Link>
+          .
+        </p>
+
         <SubmitButton />
       </form>
 

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import Logo from "./Logo";
 import HomeLink from "@/components/HomeLink";
 
@@ -43,7 +44,12 @@ export default function AuthShell({
           <div className="mt-8 flex flex-col gap-6">{children}</div>
         </main>
 
-        <p className="text-xs text-stone-400">© {new Date().getFullYear()} AltaEntrega · Hecho en Villa Altagracia, RD</p>
+        <p className="text-xs text-stone-400">
+          © {new Date().getFullYear()} AltaEntrega · Hecho en Villa Altagracia, RD ·{" "}
+          <Link href="/privacidad" className="hover:text-stone-600 hover:underline">
+            Privacidad
+          </Link>
+        </p>
       </div>
 
       <aside className="relative hidden overflow-hidden lg:block">
