@@ -70,7 +70,11 @@ export default async function AdminPage({
 
   // Nombres de los dueños de las solicitudes pendientes.
   const ownerIds = Array.from(
-    new Set([...(pendingStores ?? []).map((s) => s.user_id), ...(pendingCouriers ?? []).map((c) => c.user_id)])
+    new Set(
+      [...(pendingStores ?? []).map((s) => s.user_id), ...(pendingCouriers ?? []).map((c) => c.user_id)].filter(
+        (id): id is string => Boolean(id)
+      )
+    )
   );
   const { data: owners } = ownerIds.length
     ? await supabase.from("users").select("id, nombre, email, telefono").in("id", ownerIds)
@@ -80,7 +84,10 @@ export default async function AdminPage({
   // Nombres relacionados con la tabla de pedidos.
   const orderRows = orders ?? [];
   const orderStoreIds = Array.from(new Set(orderRows.map((o) => o.store_id)));
-  const orderClienteIds = Array.from(new Set(orderRows.map((o) => o.cliente_id)));
+  // cliente_id es null si el cliente eliminó su cuenta.
+  const orderClienteIds = Array.from(
+    new Set(orderRows.map((o) => o.cliente_id).filter((id): id is string => Boolean(id)))
+  );
   const orderCourierIds = Array.from(
     new Set(orderRows.map((o) => o.courier_id).filter((id): id is string => Boolean(id)))
   );
@@ -124,7 +131,7 @@ export default async function AdminPage({
         ) : (
           <div className="flex flex-col gap-3">
             {pendingStores.map((s) => {
-              const owner = ownerById.get(s.user_id);
+              const owner = s.user_id ? ownerById.get(s.user_id) : undefined;
               return (
                 <div
                   key={s.id}
@@ -213,7 +220,7 @@ export default async function AdminPage({
                       {formatFecha(o.created_at)}
                     </td>
                     <td className="px-3 py-2">{storeNameById.get(o.store_id) ?? "—"}</td>
-                    <td className="px-3 py-2">{userNameById.get(o.cliente_id) ?? "—"}</td>
+                    <td className="px-3 py-2">{o.cliente_id ? (userNameById.get(o.cliente_id) ?? "—") : "Cuenta eliminada"}</td>
                     <td className="px-3 py-2">
                       {o.courier_id ? courierName(o.courier_id) : "Sin asignar"}
                     </td>

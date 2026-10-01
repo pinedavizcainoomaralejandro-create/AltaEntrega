@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireOwnCourier } from "@/lib/supabase/current-courier";
 import AvailabilityToggle from "@/components/delivery/AvailabilityToggle";
 import OrdersPool from "@/components/delivery/OrdersPool";
@@ -22,6 +23,13 @@ export default async function DeliveryHomePage() {
         <h2 className="mb-3 font-display text-xl font-semibold">Mis entregas</h2>
         <MyDeliveries courierId={courier.id} />
       </section>
+
+      <p className="text-sm text-stone-500">
+        ¿Ya no quieres repartir con AltaEntrega?{" "}
+        <Link href="/cuenta/eliminar" className="text-red-600 underline">
+          Eliminar mi cuenta
+        </Link>
+      </p>
     </div>
   );
 }

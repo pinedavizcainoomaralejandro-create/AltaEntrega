@@ -29,6 +29,7 @@ export default function LoginForm() {
   const params = useSearchParams();
   const checkEmail = params.get("check_email") === "1";
   const linkError = params.get("link_error") === "1";
+  const cuentaEliminada = params.get("cuenta_eliminada") === "1";
   const redirectTo = params.get("redirect") ?? "";
 
   return (
@@ -37,6 +38,12 @@ export default function LoginForm() {
       {checkEmail && (
         <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-800">
           Revisa tu correo para confirmar la cuenta antes de iniciar sesión.
+        </p>
+      )}
+
+      {cuentaEliminada && (
+        <p className="rounded-xl bg-monte-50 p-3 text-sm text-monte-800">
+          Tu cuenta fue eliminada. Gracias por haber usado AltaEntrega.
         </p>
       )}
 

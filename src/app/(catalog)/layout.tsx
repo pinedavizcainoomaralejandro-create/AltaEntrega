@@ -97,6 +97,11 @@ export default async function CatalogLayout({ children }: { children: React.Reac
               <Link href="/privacidad" className="hover:text-white">
                 Política de privacidad
               </Link>
+              {user && (
+                <Link href="/cuenta/eliminar" className="hover:text-white">
+                  Eliminar mi cuenta
+                </Link>
+              )}
             </div>
           </div>
           <p className="border-t border-white/10 py-4 text-center text-xs text-monte-300">

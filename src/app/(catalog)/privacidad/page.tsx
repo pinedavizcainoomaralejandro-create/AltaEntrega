@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Política de privacidad",
@@ -141,9 +142,13 @@ export default function PrivacidadPage() {
 
       <Section title="Eliminar tu cuenta">
         <p>
-          Para borrar tu cuenta, escribe a {correo} desde el correo de tu cuenta. Borramos tu perfil, tus datos de
-          contacto, tus documentos y tus cuentas bancarias. Solo conservamos los pedidos y pagos que la ley nos obliga a
-          guardar, sin usarlos para nada más.
+          Puedes borrar tu cuenta tú mismo desde la app, en{" "}
+          <Link href="/cuenta/eliminar" className="link">
+            Eliminar mi cuenta
+          </Link>{" "}
+          (al pie de la página o en tu panel), o escribiendo a {correo} desde el correo de tu cuenta. Borramos tu
+          perfil, tus datos de contacto, tus documentos y tus cuentas bancarias. Solo conservamos los pedidos y pagos
+          que la ley nos obliga a guardar, sin tus datos personales y sin usarlos para nada más.
         </p>
       </Section>
 

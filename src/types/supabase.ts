@@ -234,7 +234,7 @@ export type Database = {
       }
       orders: {
         Row: {
-          cliente_id: string
+          cliente_id: string | null
           codigo: string
           comprobante_path: string | null
           courier_id: string | null
@@ -260,7 +260,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          cliente_id: string
+          cliente_id: string | null
           codigo?: string
           comprobante_path?: string | null
           courier_id?: string | null
@@ -286,7 +286,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          cliente_id?: string
+          cliente_id?: string | null
           codigo?: string
           comprobante_path?: string | null
           courier_id?: string | null
@@ -551,34 +551,37 @@ export type Database = {
           categoria: string
           created_at: string
           direccion: string
+          eliminada_at: string | null
           estado: Database["public"]["Enums"]["approval_status"]
           id: string
           logo: string | null
           nombre: string
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           categoria: string
           created_at?: string
           direccion: string
+          eliminada_at?: string | null
           estado?: Database["public"]["Enums"]["approval_status"]
           id?: string
           logo?: string | null
           nombre: string
           updated_at?: string
-          user_id: string
+          user_id: string | null
         }
         Update: {
           categoria?: string
           created_at?: string
           direccion?: string
+          eliminada_at?: string | null
           estado?: Database["public"]["Enums"]["approval_status"]
           id?: string
           logo?: string | null
           nombre?: string
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -601,7 +604,7 @@ export type Database = {
           plan: string
           referencia: string
           revisado_at: string | null
-          subscription_id: string
+          subscription_id: string | null
         }
         Insert: {
           comprobante_path: string
@@ -613,7 +616,7 @@ export type Database = {
           plan: string
           referencia: string
           revisado_at?: string | null
-          subscription_id: string
+          subscription_id?: string | null
         }
         Update: {
           comprobante_path?: string
@@ -625,7 +628,7 @@ export type Database = {
           plan?: string
           referencia?: string
           revisado_at?: string | null
-          subscription_id?: string
+          subscription_id?: string | null
         }
         Relationships: [
           {
@@ -745,6 +748,8 @@ export type Database = {
         Returns: Database["public"]["Enums"]["order_status"]
       }
       cancel_order: { Args: { p_order_id: string }; Returns: undefined }
+      account_deletion_blocker: { Args: never; Returns: string }
+      delete_my_account: { Args: never; Returns: undefined }
       checkout: {
         Args: { p_direccion_entrega: string; p_items: Json; p_store_id: string }
         Returns: string

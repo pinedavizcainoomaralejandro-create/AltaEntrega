@@ -53,6 +53,9 @@ export default async function PendingApprovalPage() {
           Cerrar sesión
         </button>
       </form>
+      <Link href="/cuenta/eliminar" className="text-center text-sm text-stone-500 underline hover:text-red-600">
+        Eliminar mi cuenta
+      </Link>
     </AuthShell>
   );
 }

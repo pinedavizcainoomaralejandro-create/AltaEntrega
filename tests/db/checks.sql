@@ -578,4 +578,129 @@ select pg_temp.expect_error(format('select public.store_mark_refunded(%L, %L)', 
   'no tiene un reembolso pendiente');
 
 reset role;
+
+-- ─────────────────────────────────────────────────────────────
+-- Eliminar la cuenta (delete_my_account)
+-- ─────────────────────────────────────────────────────────────
+select pg_temp.as_user('');
+insert into auth.users (id, email) values
+  ('00000000-0000-0000-0000-0000000000b2', 't2@x.com'),
+  ('00000000-0000-0000-0000-0000000000b3', 't3@x.com'),
+  ('00000000-0000-0000-0000-0000000000c4', 'c4@x.com'),
+  ('00000000-0000-0000-0000-0000000000c5', 'c5@x.com'),
+  ('00000000-0000-0000-0000-0000000000d3', 'd3@x.com');
+insert into public.users (id, email, rol, nombre) values
+  ('00000000-0000-0000-0000-0000000000b2', 't2@x.com', 'tienda', 'Tienda2'),
+  ('00000000-0000-0000-0000-0000000000b3', 't3@x.com', 'tienda', 'Tienda3'),
+  ('00000000-0000-0000-0000-0000000000c4', 'c4@x.com', 'cliente', 'Cliente4'),
+  ('00000000-0000-0000-0000-0000000000c5', 'c5@x.com', 'cliente', 'Cliente5'),
+  ('00000000-0000-0000-0000-0000000000d3', 'd3@x.com', 'courier', 'Rep3');
+insert into public.stores (id, user_id, nombre, direccion, categoria, estado) values
+  ('00000000-0000-0000-0000-0000000000a2', '00000000-0000-0000-0000-0000000000b2', 'Colmado', 'Calle 2', 'boutique', 'aprobado'),
+  ('00000000-0000-0000-0000-0000000000a3', '00000000-0000-0000-0000-0000000000b3', 'Sin ventas', 'Calle 3', 'boutique', 'aprobado');
+insert into public.couriers (id, user_id, vehiculo, documento_identidad, matricula, estado) values
+  ('00000000-0000-0000-0000-0000000000e3', '00000000-0000-0000-0000-0000000000d3', 'moto', '33333333333', 'K444444', 'aprobado');
+insert into public.store_payout_accounts (store_id, banco, tipo_cuenta, numero_cuenta, titular, documento)
+values ('00000000-0000-0000-0000-0000000000a2', 'Banco', 'ahorros', '1234567', 'Tienda2', '00100000001');
+insert into public.subscription_payments (subscription_id, plan, monto, referencia, comprobante_path, estado)
+select sub.id, 'mensual', 500, r, 'suscripciones/x/' || r, e
+from public.subscriptions sub, (values ('PAGO-OK', 'aprobado'), ('PAGO-PEND', 'por_confirmar')) v(r, e)
+where sub.courier_id = '00000000-0000-0000-0000-0000000000e3';
+insert into public.products (id, store_id, nombre, precio, stock) values
+  ('00000000-0000-0000-0000-0000000000f2', '00000000-0000-0000-0000-0000000000a2', 'Vendido', 10, 5),
+  ('00000000-0000-0000-0000-0000000000f3', '00000000-0000-0000-0000-0000000000a2', 'Sin vender', 10, 5),
+  ('00000000-0000-0000-0000-0000000000f4', '00000000-0000-0000-0000-0000000000a3', 'Otro', 10, 5);
+insert into public.orders (id, cliente_id, store_id, courier_id, estado, direccion_entrega, subtotal, total, metodo_pago, tienda_nombre, tienda_direccion) values
+  ('00000000-0000-0000-0000-00000000a0d1', '00000000-0000-0000-0000-0000000000c4', '00000000-0000-0000-0000-0000000000a2',
+   '00000000-0000-0000-0000-0000000000e3', 'entregado', 'Casa de Cliente4', 10, 10, 'efectivo', 'Colmado', 'Calle 2'),
+  ('00000000-0000-0000-0000-00000000a0d2', '00000000-0000-0000-0000-0000000000c5', '00000000-0000-0000-0000-0000000000a1',
+   null, 'pendiente', 'Casa de Cliente5', 10, 10, 'efectivo', 'Boutique', 'Calle Duarte 1');
+insert into public.order_items (order_id, product_id, cantidad, precio_unitario, nombre) values
+  ('00000000-0000-0000-0000-00000000a0d1', '00000000-0000-0000-0000-0000000000f2', 1, 10, 'Vendido');
+
+set role authenticated;
+
+-- Sin sesión, el admin y quien tiene un pedido en curso no pueden eliminar la cuenta
+select pg_temp.expect_error('select public.delete_my_account()', 'Inicia sesión');
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000a');
+select pg_temp.expect_error('select public.delete_my_account()', 'administrador');
+select pg_temp.as_user('00000000-0000-0000-0000-0000000000c5');
+select pg_temp.expect_error('select public.delete_my_account()', 'pedidos en curso');
+do $$ begin
+  if public.account_deletion_blocker() not like 'Tienes pedidos en curso%' then
+    raise exception 'account_deletion_blocker debe avisar del pedido en curso';
+  end if;
+end $$;
+select pg_temp.as_user('00000000-0000-0000-0000-0000000000c4');
+do $$ begin
+  if public.account_deletion_blocker() is not null then
+    raise exception 'account_deletion_blocker no debe bloquear a un cliente sin pedidos en curso';
+  end if;
+end $$;
+
+-- Cliente con un pedido entregado: el pedido queda sin dueño y sin dirección
+select pg_temp.as_user('00000000-0000-0000-0000-0000000000c4');
+select public.delete_my_account();
+reset role;
+do $$ declare o public.orders%rowtype; begin
+  if exists (select 1 from auth.users where id = '00000000-0000-0000-0000-0000000000c4')
+     or exists (select 1 from public.users where id = '00000000-0000-0000-0000-0000000000c4') then
+    raise exception 'El cliente eliminado sigue existiendo';
+  end if;
+  select * into o from public.orders where id = '00000000-0000-0000-0000-00000000a0d1';
+  if not found or o.cliente_id is not null or o.direccion_entrega <> 'Cuenta eliminada' then
+    raise exception 'El pedido del cliente eliminado debe quedar sin dueño y sin dirección';
+  end if;
+end $$;
+set role authenticated;
+
+-- Repartidor: se borra su ficha y su entrega pasada queda sin repartidor
+select pg_temp.as_user('00000000-0000-0000-0000-0000000000d3');
+select public.delete_my_account();
+reset role;
+do $$ begin
+  if exists (select 1 from public.couriers where id = '00000000-0000-0000-0000-0000000000e3') then
+    raise exception 'La ficha del repartidor eliminado sigue existiendo';
+  end if;
+  if (select courier_id from public.orders where id = '00000000-0000-0000-0000-00000000a0d1') is not null then
+    raise exception 'La entrega del repartidor eliminado debe quedar sin repartidor';
+  end if;
+  if not exists (select 1 from public.subscription_payments where referencia = 'PAGO-OK' and subscription_id is null)
+     or exists (select 1 from public.subscription_payments where referencia = 'PAGO-PEND') then
+    raise exception 'Del repartidor eliminado solo debe quedar el pago de suscripción aprobado';
+  end if;
+end $$;
+set role authenticated;
+
+-- Negocio con ventas: queda oculto y sin dueño; se borran los productos sin ventas
+select pg_temp.as_user('00000000-0000-0000-0000-0000000000b2');
+select public.delete_my_account();
+reset role;
+do $$ declare s public.stores%rowtype; begin
+  select * into s from public.stores where id = '00000000-0000-0000-0000-0000000000a2';
+  if not found or s.user_id is not null or s.estado <> 'rechazado' or s.eliminada_at is null then
+    raise exception 'El negocio con ventas debe quedar oculto y sin dueño';
+  end if;
+  if exists (select 1 from public.subscriptions where store_id = s.id)
+     or exists (select 1 from public.store_payout_accounts where store_id = s.id) then
+    raise exception 'La suscripción o la cuenta bancaria del negocio eliminado siguen existiendo';
+  end if;
+  if exists (select 1 from public.products where id = '00000000-0000-0000-0000-0000000000f3')
+     or (select activo from public.products where id = '00000000-0000-0000-0000-0000000000f2') then
+    raise exception 'Los productos del negocio eliminado no se limpiaron';
+  end if;
+end $$;
+set role authenticated;
+
+-- Negocio sin ventas: se borra entero
+select pg_temp.as_user('00000000-0000-0000-0000-0000000000b3');
+select public.delete_my_account();
+reset role;
+do $$ begin
+  if exists (select 1 from public.stores where id = '00000000-0000-0000-0000-0000000000a3')
+     or exists (select 1 from public.products where id = '00000000-0000-0000-0000-0000000000f4') then
+    raise exception 'El negocio sin ventas debe borrarse entero';
+  end if;
+end $$;
+
 \echo 'OK: todas las pruebas de base de datos pasaron'

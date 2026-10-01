@@ -68,7 +68,7 @@ export default async function SubscriptionsAdmin() {
         ) : (
           <ul className="flex flex-col gap-3">
             {pagos.map((p) => {
-              const sub = subById.get(p.subscription_id);
+              const sub = p.subscription_id ? subById.get(p.subscription_id) : undefined;
               const url = urlByPath.get(p.comprobante_path);
               return (
                 <li key={p.id} className="flex flex-col gap-2 rounded-xl border border-stone-200 bg-arena-50 p-3 text-sm">
