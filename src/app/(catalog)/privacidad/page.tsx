@@ -6,8 +6,8 @@ export const metadata: Metadata = {
 };
 
 // Responsable de los datos y correo de contacto (los piden Google Play y App Store).
-const RESPONSABLE = "PENDIENTE: nombre del responsable";
-const CONTACTO = "PENDIENTE@correo";
+const RESPONSABLE = "Omar Alejandro Pineda Vizcaino";
+const CONTACTO = "pinedavizcainoomaralejandro@gmail.com";
 const ACTUALIZADA = "1 de octubre de 2026";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {

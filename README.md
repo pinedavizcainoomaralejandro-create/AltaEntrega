@@ -47,7 +47,7 @@ También se instala como PWA y tiene apps nativas para Android e iOS con Capacit
 
 ## Autor
 
-**Omar Alejandro Pineda Vizcaíno**. Diseño, desarrollo y despliegue del proyecto completo.
+**Omar Alejandro Pineda Vizcaino**. Diseño, desarrollo y despliegue del proyecto completo.
 
 ---
 
