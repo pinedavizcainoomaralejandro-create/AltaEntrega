@@ -1,5 +1,5 @@
 // Genera los íconos de la PWA (public/icons) y el de la pestaña del navegador
-// (src/app/favicon.ico, icon.svg y apple-icon.png) a partir del LogoMark
+// (src/app/favicon.ico, icon.svg y apple-icon.png), y los de la app Android, a partir del LogoMark
 // (src/components/brand/Logo.tsx). Ejecutar: node scripts/generate-icons.mjs
 import { mkdir, writeFile } from "node:fs/promises";
 import sharp from "sharp";
@@ -62,3 +62,44 @@ sizes.forEach((size, i) => {
 });
 await writeFile("src/app/favicon.ico", Buffer.concat([header, ...pngs]));
 console.log("src/app/favicon.ico");
+
+// App Android (Capacitor). Sale de aquí solo si ya existe la carpeta android/.
+const androidRes = "android/app/src/main/res";
+const hasAndroid = await sharp(`${androidRes}/drawable/splash.png`).metadata().then(() => true, () => false);
+if (hasAndroid) {
+  // Círculo para los lanzadores que piden ic_launcher_round.
+  const round = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
+  <clipPath id="c"><circle cx="20" cy="20" r="20" /></clipPath>
+  <g clip-path="url(#c)">${art}</g>
+</svg>`;
+  // Densidades de Android: el ícono mide 48 dp y la capa adaptativa 108 dp.
+  const densities = { mdpi: 1, hdpi: 1.5, xhdpi: 2, xxhdpi: 3, xxxhdpi: 4 };
+  for (const [density, scale] of Object.entries(densities)) {
+    const dir = `${androidRes}/mipmap-${density}`;
+    const launcher = [
+      { file: "ic_launcher.png", svg: rounded, size: 48 * scale },
+      { file: "ic_launcher_round.png", svg: round, size: 48 * scale },
+      // Capa adaptativa sin bordes: el lanzador la recorta a su forma.
+      { file: "ic_launcher_foreground.png", svg: fullBleed, size: 108 * scale },
+    ];
+    for (const { file, svg, size } of launcher) {
+      await sharp(Buffer.from(svg), { density: 1200 }).resize(size, size).png().toFile(`${dir}/${file}`);
+    }
+    console.log(`${dir}/ic_launcher*.png`);
+  }
+
+  // Pantalla de carga: el logo centrado sobre el fondo crema de la web.
+  const splashDirs = ["drawable", ...["land", "port"].flatMap((o) => Object.keys(densities).map((d) => `drawable-${o}-${d}`))];
+  for (const dir of splashDirs) {
+    const file = `${androidRes}/${dir}/splash.png`;
+    const { width, height } = await sharp(file).metadata();
+    const logoSize = Math.round(Math.min(width, height) * 0.3);
+    const logo = await sharp(Buffer.from(rounded), { density: 1200 }).resize(logoSize, logoSize).png().toBuffer();
+    const splash = await sharp({ create: { width, height, channels: 3, background: "#faf6ef" } })
+      .composite([{ input: logo, gravity: "center" }])
+      .png()
+      .toBuffer();
+    await writeFile(file, splash);
+  }
+  console.log(`${androidRes}/drawable*/splash.png`);
+}
