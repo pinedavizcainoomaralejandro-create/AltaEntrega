@@ -14,6 +14,15 @@ const config: CapacitorConfig = {
   android: {
     backgroundColor: "#faf6ef",
   },
+  plugins: {
+    // La web usa viewport-fit=cover y se aparta sola con env(safe-area-inset-*).
+    SystemBars: {
+      insetsHandling: "native",
+      initialViewportFitValueHint: "cover",
+      // Íconos oscuros sobre el fondo arena claro.
+      style: "LIGHT",
+    },
+  },
 };
 
 export default config;

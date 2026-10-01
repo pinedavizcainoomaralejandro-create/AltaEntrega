@@ -5,6 +5,22 @@
 @layer base {
   body {
     @apply bg-arena-100 font-sans text-stone-800 antialiased;
+    /* En la app nativa y la PWA la página ocupa toda la pantalla (viewport-fit
+       cover): se aparta del notch y de las barras del sistema. En el navegador
+       estos valores son 0. */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+      env(safe-area-inset-left);
+  }
+
+  /* Franja fija detrás de la barra de estado, para que el contenido no se vea
+     pasar por debajo al hacer scroll. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 60;
+    height: env(safe-area-inset-top);
+    @apply bg-arena-50;
   }
 
   h1,
@@ -20,6 +36,11 @@
 
 /* Piezas reutilizables del diseño: formularios, botones y tarjetas. */
 @layer components {
+  /* Alto completo de la pantalla sin contar los márgenes seguros del body. */
+  .min-h-safe-screen {
+    min-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  }
+
   .input {
     @apply w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2.5 text-stone-900 shadow-sm transition placeholder:text-stone-400 focus:border-monte-500 focus:outline-none focus:ring-4 focus:ring-monte-500/15 read-only:bg-stone-50 read-only:text-stone-500;
   }

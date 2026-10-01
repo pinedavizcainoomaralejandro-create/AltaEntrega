@@ -1,5 +1,5 @@
 // Genera los íconos de la PWA (public/icons) y el de la pestaña del navegador
-// (src/app/favicon.ico, icon.svg y apple-icon.png), y los de la app Android, a partir del LogoMark
+// (src/app/favicon.ico, icon.svg y apple-icon.png), y los de las apps Android e iOS, a partir del LogoMark
 // (src/components/brand/Logo.tsx). Ejecutar: node scripts/generate-icons.mjs
 import { mkdir, writeFile } from "node:fs/promises";
 import sharp from "sharp";
@@ -102,4 +102,30 @@ if (hasAndroid) {
     await writeFile(file, splash);
   }
   console.log(`${androidRes}/drawable*/splash.png`);
+}
+
+// App iOS (Capacitor). Sale de aquí solo si ya existe la carpeta ios/.
+const iosAssets = "ios/App/App/Assets.xcassets";
+const hasIos = await sharp(`${iosAssets}/Splash.imageset/splash-2732x2732.png`).metadata().then(() => true, () => false);
+if (hasIos) {
+  // App Store rechaza íconos con transparencia; iOS recorta las esquinas.
+  await sharp(Buffer.from(fullBleed), { density: 1200 })
+    .resize(1024, 1024)
+    .flatten({ background: "#1c5136" })
+    .removeAlpha()
+    .png()
+    .toFile(`${iosAssets}/AppIcon.appiconset/AppIcon-512@2x.png`);
+  console.log(`${iosAssets}/AppIcon.appiconset/AppIcon-512@2x.png`);
+
+  // Pantalla de carga cuadrada: el teléfono solo muestra la franja central,
+  // así que el logo va pequeño respecto al cuadrado.
+  const logo = await sharp(Buffer.from(rounded), { density: 1200 }).resize(400, 400).png().toBuffer();
+  const splash = await sharp({ create: { width: 2732, height: 2732, channels: 3, background: "#faf6ef" } })
+    .composite([{ input: logo, gravity: "center" }])
+    .png()
+    .toBuffer();
+  for (const suffix of ["", "-1", "-2"]) {
+    await writeFile(`${iosAssets}/Splash.imageset/splash-2732x2732${suffix}.png`, splash);
+  }
+  console.log(`${iosAssets}/Splash.imageset/splash-2732x2732*.png`);
 }

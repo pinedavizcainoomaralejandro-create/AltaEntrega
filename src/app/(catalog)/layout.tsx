@@ -28,8 +28,8 @@ export default async function CatalogLayout({ children }: { children: React.Reac
 
   return (
     <CartProvider canBuy={canBuy}>
-      <div className="flex min-h-screen flex-col">
-        <header className="sticky top-0 z-40 border-b border-stone-200/70 bg-arena-50/85 backdrop-blur">
+      <div className="flex min-h-safe-screen flex-col">
+        <header className="sticky top-[env(safe-area-inset-top)] z-40 border-b border-stone-200/70 bg-arena-50/85 backdrop-blur">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
             <Logo />
             <nav className="flex items-center gap-1 text-sm font-medium sm:gap-2">
