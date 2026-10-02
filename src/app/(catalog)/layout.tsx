@@ -59,8 +59,8 @@ export default async function CatalogLayout({ children }: { children: React.Reac
                 </>
               ) : (
                 <>
-                  <Link href="/login" className="rounded-xl px-3 py-2 text-stone-700 transition hover:bg-arena-200">
-                    Ingresar
+                  <Link href="/login" className="btn-secondary btn-sm whitespace-nowrap py-2">
+                    Iniciar sesión
                   </Link>
                   <Link href="/register" className="btn-primary btn-sm hidden whitespace-nowrap py-2 sm:inline-flex">
                     Crear cuenta

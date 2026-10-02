@@ -19,7 +19,7 @@ function SubmitButton() {
       disabled={pending}
       className="btn-primary w-full"
     >
-      {pending ? "Ingresando..." : "Ingresar"}
+      {pending ? "Iniciando sesión..." : "Iniciar sesión"}
     </button>
   );
 }
