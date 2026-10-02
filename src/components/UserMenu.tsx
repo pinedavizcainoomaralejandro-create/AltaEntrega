@@ -4,9 +4,11 @@ import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { signOutAction } from "@/app/(auth)/actions";
 import { CONTACTO_EMAIL } from "@/lib/contacto";
+import Avatar from "@/components/Avatar";
 import {
   ChevronDownIcon,
   HelpIcon,
+  HistoryIcon,
   KeyIcon,
   LogoutIcon,
   PencilIcon,
@@ -31,10 +33,12 @@ export default function UserMenu({
   nombre,
   email,
   rol,
+  avatarUrl,
 }: {
   nombre: string | null;
   email: string;
   rol: string;
+  avatarUrl: string | null;
 }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -62,7 +66,6 @@ export default function UserMenu({
   }, [open]);
 
   const close = () => setOpen(false);
-  const inicial = (nombre ?? email).charAt(0).toUpperCase();
   // Tienda/repartidor: el proxy lleva /pending-approval a su pantalla real
   // (solicitud, perfil por completar o panel).
   const panelHref = rol === "admin" ? "/admin" : "/pending-approval";
@@ -79,9 +82,7 @@ export default function UserMenu({
         aria-label="Menú de mi cuenta"
         className="inline-flex items-center gap-1.5 rounded-xl px-1.5 py-1 text-sm font-medium text-stone-600 transition hover:bg-arena-200"
       >
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-monte-100 font-semibold text-monte-800">
-          {inicial}
-        </span>
+        <Avatar nombre={nombre ?? email} url={avatarUrl} />
         {nombre && <span className="hidden md:inline">{nombre.split(" ")[0]}</span>}
         <ChevronDownIcon className={`h-4 w-4 text-stone-400 transition ${open ? "rotate-180" : ""}`} />
       </button>
@@ -93,9 +94,7 @@ export default function UserMenu({
           className="absolute right-0 z-50 mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-2xl border border-stone-200 bg-white p-2 text-left shadow-xl"
         >
           <div className="flex items-center gap-3 px-3 py-2.5">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-monte-100 font-display text-lg font-semibold text-monte-800">
-              {inicial}
-            </span>
+            <Avatar nombre={nombre ?? email} url={avatarUrl} className="h-10 w-10 font-display text-lg" />
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-stone-900">{nombre ?? email}</p>
               <p className="truncate text-xs text-stone-500">
@@ -107,10 +106,16 @@ export default function UserMenu({
           <hr className="my-1.5 border-stone-100" />
 
           {rol === "cliente" ? (
-            <Link href="/pedidos" role="menuitem" onClick={close} className={itemClass}>
-              <ReceiptIcon className="h-5 w-5 text-monte-700" />
-              Mis pedidos
-            </Link>
+            <>
+              <Link href="/pedidos" role="menuitem" onClick={close} className={itemClass}>
+                <ReceiptIcon className="h-5 w-5 text-monte-700" />
+                Mis pedidos
+              </Link>
+              <Link href="/cuenta/compras" role="menuitem" onClick={close} className={itemClass}>
+                <HistoryIcon className="h-5 w-5 text-monte-700" />
+                Historial de compras
+              </Link>
+            </>
           ) : (
             <Link href={panelHref} role="menuitem" onClick={close} className={itemClass}>
               <UserIcon className="h-5 w-5 text-monte-700" />

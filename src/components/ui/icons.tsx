@@ -125,3 +125,12 @@ export function ChevronDownIcon({ className = "h-4 w-4" }: IconProps) {
     </svg>
   );
 }
+
+export function HistoryIcon({ className = "h-5 w-5" }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+      <path d="M3 3v5h5M12 7v5l3 2" />
+    </svg>
+  );
+}

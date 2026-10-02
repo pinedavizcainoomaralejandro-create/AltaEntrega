@@ -703,4 +703,22 @@ do $$ begin
   end if;
 end $$;
 
+-- Foto de perfil: solo una ruta dentro de la carpeta del propio usuario
+insert into auth.users (id, email) values ('00000000-0000-0000-0000-0000000000e1', 'e1@x.com');
+insert into public.users (id, email, rol, nombre) values
+  ('00000000-0000-0000-0000-0000000000e1', 'e1@x.com', 'cliente', 'Con foto');
+set role authenticated;
+select pg_temp.as_user('00000000-0000-0000-0000-0000000000e1');
+update public.users set avatar_path = '00000000-0000-0000-0000-0000000000e1/foto.webp'
+  where id = '00000000-0000-0000-0000-0000000000e1';
+select pg_temp.expect_error(
+  $q$update public.users set avatar_path = '00000000-0000-0000-0000-00000000000c/foto.webp'
+     where id = '00000000-0000-0000-0000-0000000000e1'$q$,
+  'users_avatar_path_own_folder');
+select pg_temp.expect_error(
+  $q$update public.users set avatar_path = 'https://otro-sitio.com/foto.png'
+     where id = '00000000-0000-0000-0000-0000000000e1'$q$,
+  'users_avatar_path_own_folder');
+reset role;
+
 \echo 'OK: todas las pruebas de base de datos pasaron'

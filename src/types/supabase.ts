@@ -260,7 +260,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          cliente_id: string | null
+          cliente_id?: string | null
           codigo?: string
           comprobante_path?: string | null
           courier_id?: string | null
@@ -569,7 +569,7 @@ export type Database = {
           logo?: string | null
           nombre: string
           updated_at?: string
-          user_id: string | null
+          user_id?: string | null
         }
         Update: {
           categoria?: string
@@ -687,6 +687,7 @@ export type Database = {
       }
       users: {
         Row: {
+          avatar_path: string | null
           created_at: string
           email: string
           id: string
@@ -696,6 +697,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          avatar_path?: string | null
           created_at?: string
           email: string
           id: string
@@ -705,6 +707,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          avatar_path?: string | null
           created_at?: string
           email?: string
           id?: string
@@ -743,13 +746,12 @@ export type Database = {
       }
     }
     Functions: {
+      account_deletion_blocker: { Args: never; Returns: string }
       advance_order_status: {
         Args: { p_order_id: string }
         Returns: Database["public"]["Enums"]["order_status"]
       }
       cancel_order: { Args: { p_order_id: string }; Returns: undefined }
-      account_deletion_blocker: { Args: never; Returns: string }
-      delete_my_account: { Args: never; Returns: undefined }
       checkout: {
         Args: { p_direccion_entrega: string; p_items: Json; p_store_id: string }
         Returns: string
@@ -768,6 +770,7 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      delete_my_account: { Args: never; Returns: undefined }
       expire_unpaid_orders: { Args: never; Returns: undefined }
       fail_payment: {
         Args: { p_estado_pago: string; p_order_id: string }

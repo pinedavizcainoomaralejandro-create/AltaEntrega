@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { friendlyDbError } from "@/lib/errors";
+import { AVATAR_BUCKET } from "@/lib/avatar";
 
 export type DeleteAccountState = { error: string | null };
 
@@ -37,6 +38,11 @@ export async function deleteAccountAction(
       if (paths.length) await supabase.storage.from(bucket).remove(paths);
     }
   }
+
+  // Foto de perfil: misma razón que las fotos del negocio.
+  const { data: avatarFiles } = await supabase.storage.from(AVATAR_BUCKET).list(user.id, { limit: 100 });
+  const avatarPaths = (avatarFiles ?? []).map((f) => `${user.id}/${f.name}`);
+  if (avatarPaths.length) await supabase.storage.from(AVATAR_BUCKET).remove(avatarPaths);
 
   const { error } = await supabase.rpc("delete_my_account");
   if (error) return { error: friendlyDbError(error) };

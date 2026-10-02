@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { siteOrigin } from "@/lib/siteOrigin";
 import { friendlyAuthError, friendlyDbError } from "@/lib/errors";
 import { EMAIL_RE, normalizeTelefono, validatePassword } from "@/lib/validation";
+import { AVATAR_BUCKET, AVATAR_MAX_BYTES, AVATAR_TYPES } from "@/lib/avatar";
 
 export type AccountFormState = { error: string | null; message: string | null } & FormValues;
 
@@ -116,4 +117,53 @@ export async function changeEmailAction(
   formData: FormData
 ): Promise<AccountFormState> {
   return attachValues(await changeEmailInner(prevState, formData), formData, ["email"]);
+}
+
+export type AvatarState = { error: string | null };
+
+const AVATAR_EXT: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
+
+export async function updateAvatarAction(_prevState: AvatarState, formData: FormData): Promise<AvatarState> {
+  const file = formData.get("avatar");
+  if (!(file instanceof File) || file.size === 0) return { error: "Elige una foto." };
+  if (!AVATAR_TYPES.includes(file.type)) return { error: "La foto debe ser JPG, PNG o WebP." };
+  if (file.size > AVATAR_MAX_BYTES) return { error: "La foto no puede pesar más de 2 MB." };
+
+  const { supabase, user } = await requireUser("/cuenta/perfil");
+  const { data: profile } = await supabase.from("users").select("avatar_path").eq("id", user.id).maybeSingle();
+
+  // Nombre nuevo en cada cambio: con el mismo nombre la CDN seguiría
+  // mostrando la foto anterior.
+  const path = `${user.id}/${crypto.randomUUID()}.${AVATAR_EXT[file.type]}`;
+  const { error: uploadError } = await supabase.storage
+    .from(AVATAR_BUCKET)
+    .upload(path, file, { contentType: file.type, upsert: false });
+  if (uploadError) {
+    console.error(uploadError);
+    return { error: "No se pudo subir la foto. Inténtalo de nuevo." };
+  }
+
+  const { error } = await supabase.from("users").update({ avatar_path: path }).eq("id", user.id);
+  if (error) {
+    await supabase.storage.from(AVATAR_BUCKET).remove([path]);
+    return { error: friendlyDbError(error) };
+  }
+
+  if (profile?.avatar_path) await supabase.storage.from(AVATAR_BUCKET).remove([profile.avatar_path]);
+
+  revalidatePath("/", "layout");
+  return { error: null };
+}
+
+export async function removeAvatarAction(): Promise<AvatarState> {
+  const { supabase, user } = await requireUser("/cuenta/perfil");
+  const { data: profile } = await supabase.from("users").select("avatar_path").eq("id", user.id).maybeSingle();
+  if (!profile?.avatar_path) return { error: null };
+
+  const { error } = await supabase.from("users").update({ avatar_path: null }).eq("id", user.id);
+  if (error) return { error: friendlyDbError(error) };
+  await supabase.storage.from(AVATAR_BUCKET).remove([profile.avatar_path]);
+
+  revalidatePath("/", "layout");
+  return { error: null };
 }

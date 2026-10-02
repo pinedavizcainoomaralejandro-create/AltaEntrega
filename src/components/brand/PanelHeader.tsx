@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import HomeLink from "@/components/HomeLink";
 import UserMenu from "@/components/UserMenu";
+import { avatarUrl } from "@/lib/avatar";
 import { LogoMark } from "./Logo";
 
 /** Encabezado de los paneles (tienda, repartidor, admin). */
@@ -10,7 +11,7 @@ export default async function PanelHeader({ etiqueta, titulo }: { etiqueta: stri
     data: { user },
   } = await supabase.auth.getUser();
   const { data: profile } = user
-    ? await supabase.from("users").select("nombre, rol").eq("id", user.id).maybeSingle()
+    ? await supabase.from("users").select("nombre, rol, avatar_path").eq("id", user.id).maybeSingle()
     : { data: null };
 
   return (
@@ -24,7 +25,14 @@ export default async function PanelHeader({ etiqueta, titulo }: { etiqueta: stri
       </div>
       <div className="flex items-center gap-4">
         <HomeLink />
-        {user && <UserMenu nombre={profile?.nombre ?? null} email={user.email ?? ""} rol={profile?.rol ?? "cliente"} />}
+        {user && (
+          <UserMenu
+            nombre={profile?.nombre ?? null}
+            email={user.email ?? ""}
+            rol={profile?.rol ?? "cliente"}
+            avatarUrl={avatarUrl(profile?.avatar_path)}
+          />
+        )}
       </div>
     </header>
   );

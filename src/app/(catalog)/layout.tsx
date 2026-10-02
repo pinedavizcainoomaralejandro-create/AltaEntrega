@@ -4,6 +4,7 @@ import { CartProvider } from "@/lib/cart/CartContext";
 import CartHeaderLink from "@/components/catalog/CartHeaderLink";
 import Logo from "@/components/brand/Logo";
 import UserMenu from "@/components/UserMenu";
+import { avatarUrl } from "@/lib/avatar";
 import { ReceiptIcon, UserIcon } from "@/components/ui/icons";
 
 export default async function CatalogLayout({ children }: { children: React.ReactNode }) {
@@ -14,10 +15,12 @@ export default async function CatalogLayout({ children }: { children: React.Reac
 
   let nombre: string | null = null;
   let rol: string | null = null;
+  let avatarPath: string | null = null;
   if (user) {
-    const { data: profile } = await supabase.from("users").select("nombre, rol").eq("id", user.id).maybeSingle();
+    const { data: profile } = await supabase.from("users").select("nombre, rol, avatar_path").eq("id", user.id).maybeSingle();
     nombre = profile?.nombre ?? null;
     rol = profile?.rol ?? null;
+    avatarPath = profile?.avatar_path ?? null;
   }
 
   // Solo los clientes (o visitantes, que inician sesión al pagar) compran.
@@ -46,7 +49,7 @@ export default async function CatalogLayout({ children }: { children: React.Reac
                     {canBuy ? <ReceiptIcon /> : <UserIcon />}
                     <span className="hidden sm:inline">{canBuy ? "Mis pedidos" : "Mi panel"}</span>
                   </Link>
-                  <UserMenu nombre={nombre} email={user.email ?? ""} rol={rol ?? "cliente"} />
+                  <UserMenu nombre={nombre} email={user.email ?? ""} rol={rol ?? "cliente"} avatarUrl={avatarUrl(avatarPath)} />
                 </>
               ) : (
                 <>

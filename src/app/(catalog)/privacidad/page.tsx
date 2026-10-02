@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 // Responsable de los datos (lo piden Google Play y App Store).
 const RESPONSABLE = "Omar Alejandro Pineda Vizcaino";
-const ACTUALIZADA = "1 de octubre de 2026";
+const ACTUALIZADA = "2 de octubre de 2026";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -50,7 +50,7 @@ export default function PrivacidadPage() {
       <Section title="Qué datos guardamos">
         <p>
           <strong>Todas las cuentas:</strong> nombre, correo electrónico, teléfono, contraseña (guardada cifrada; nadie
-          puede leerla) y el tipo de cuenta (cliente, negocio o repartidor).
+          puede leerla), el tipo de cuenta (cliente, negocio o repartidor) y, si la subes, tu foto de perfil.
         </p>
         <p>
           <strong>Clientes:</strong> la dirección de entrega de cada pedido, los productos que pides, el total, el estado

@@ -12,16 +12,16 @@ export const metadata: Metadata = {
 // Lo que se borra según el rol (debe coincidir con delete_my_account()).
 const QUE_SE_BORRA: Record<string, string[]> = {
   cliente: [
-    "Tu perfil: nombre, email y teléfono.",
+    "Tu perfil: nombre, email, teléfono y foto.",
     "Las direcciones de entrega de tus pedidos.",
   ],
   tienda: [
-    "Tu perfil: nombre, email y teléfono.",
+    "Tu perfil: nombre, email, teléfono y foto.",
     "Tu negocio deja de aparecer en AltaEntrega.",
     "Tu cuenta bancaria, tu logo y las fotos de tus productos.",
   ],
   courier: [
-    "Tu perfil: nombre, email y teléfono.",
+    "Tu perfil: nombre, email, teléfono y foto.",
     "Tu cédula, tu matrícula y los datos de tu vehículo.",
   ],
 };

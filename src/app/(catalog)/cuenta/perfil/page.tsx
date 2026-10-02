@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { avatarUrl } from "@/lib/avatar";
+import AvatarForm from "./AvatarForm";
 import ProfileForm from "./ProfileForm";
 
 export const metadata: Metadata = {
@@ -15,7 +17,7 @@ export default async function EditarPerfilPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?redirect=/cuenta/perfil");
 
-  const { data: profile } = await supabase.from("users").select("nombre, telefono, rol").eq("id", user.id).maybeSingle();
+  const { data: profile } = await supabase.from("users").select("nombre, telefono, rol, avatar_path").eq("id", user.id).maybeSingle();
 
   return (
     <div className="mx-auto flex max-w-xl flex-col gap-6">
@@ -25,7 +27,9 @@ export default async function EditarPerfilPage() {
 
       <h1 className="font-display text-3xl font-semibold tracking-tight">Editar perfil</h1>
 
-      <div className="card p-5">
+      <div className="card flex flex-col gap-6 p-5">
+        <AvatarForm nombre={profile?.nombre ?? user.email ?? ""} url={avatarUrl(profile?.avatar_path)} />
+        <hr className="border-stone-100" />
         <ProfileForm nombre={profile?.nombre ?? ""} telefono={profile?.telefono ?? ""} />
       </div>
 

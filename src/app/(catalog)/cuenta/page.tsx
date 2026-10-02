@@ -4,8 +4,11 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { signOutAction } from "@/app/(auth)/actions";
 import HomeLink from "@/components/HomeLink";
+import Avatar from "@/components/Avatar";
+import { avatarUrl } from "@/lib/avatar";
 import {
   ChevronRightIcon,
+  HistoryIcon,
   KeyIcon,
   LogoutIcon,
   PencilIcon,
@@ -61,7 +64,7 @@ export default async function CuentaPage({ searchParams }: { searchParams: Promi
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?redirect=/cuenta");
 
-  const { data: profile } = await supabase.from("users").select("nombre, email, rol").eq("id", user.id).maybeSingle();
+  const { data: profile } = await supabase.from("users").select("nombre, email, rol, avatar_path").eq("id", user.id).maybeSingle();
   const rol = profile?.rol ?? "cliente";
   const nombre = profile?.nombre ?? user.email ?? "";
   const { email_actualizado } = await searchParams;
@@ -75,9 +78,7 @@ export default async function CuentaPage({ searchParams }: { searchParams: Promi
       <HomeLink className="self-start" />
 
       <header className="flex items-center gap-4">
-        <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-monte-100 font-display text-2xl font-semibold text-monte-800">
-          {nombre.charAt(0).toUpperCase()}
-        </span>
+        <Avatar nombre={nombre} url={avatarUrl(profile?.avatar_path)} className="h-14 w-14 font-display text-2xl" />
         <div className="min-w-0">
           <h1 className="truncate font-display text-2xl font-semibold tracking-tight">{nombre}</h1>
           <p className="truncate text-sm text-stone-500">
@@ -92,11 +93,19 @@ export default async function CuentaPage({ searchParams }: { searchParams: Promi
 
       <ul className="card divide-y divide-stone-100 overflow-hidden">
         {rol === "cliente" ? (
-          <MenuLink href="/pedidos" icon={<ReceiptIcon />} label="Mis pedidos" />
+          <>
+            <MenuLink href="/pedidos" icon={<ReceiptIcon />} label="Mis pedidos" detalle="Pedidos en curso y anteriores" />
+            <MenuLink
+              href="/cuenta/compras"
+              icon={<HistoryIcon />}
+              label="Historial de compras"
+              detalle="Lo que has comprado y cuánto has gastado"
+            />
+          </>
         ) : (
           <MenuLink href={panelHref} icon={<UserIcon />} label="Ir a mi panel" />
         )}
-        <MenuLink href="/cuenta/perfil" icon={<PencilIcon />} label="Editar perfil" detalle="Nombre y teléfono" />
+        <MenuLink href="/cuenta/perfil" icon={<PencilIcon />} label="Editar perfil" detalle="Foto, nombre y teléfono" />
         <MenuLink
           href="/cuenta/credenciales"
           icon={<KeyIcon />}
