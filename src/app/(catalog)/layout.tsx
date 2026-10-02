@@ -3,8 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { CartProvider } from "@/lib/cart/CartContext";
 import CartHeaderLink from "@/components/catalog/CartHeaderLink";
 import Logo from "@/components/brand/Logo";
-import { LogoutIcon, ReceiptIcon, UserIcon } from "@/components/ui/icons";
-import { signOutAction } from "@/app/(auth)/actions";
+import { ReceiptIcon, UserIcon } from "@/components/ui/icons";
 
 export default async function CatalogLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -44,26 +43,19 @@ export default async function CatalogLayout({ children }: { children: React.Reac
                     className="inline-flex items-center gap-1.5 rounded-xl px-2.5 py-2 text-stone-700 transition hover:bg-arena-200"
                   >
                     {canBuy ? <ReceiptIcon /> : <UserIcon />}
-                    <span className="hidden sm:inline">{canBuy ? "Mis pedidos" : "Mi cuenta"}</span>
+                    <span className="hidden sm:inline">{canBuy ? "Mis pedidos" : "Mi panel"}</span>
                   </Link>
-                  {nombre && (
-                    <span className="hidden items-center gap-2 pl-2 text-stone-500 md:inline-flex">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-monte-100 font-semibold text-monte-800">
-                        {nombre.charAt(0).toUpperCase()}
-                      </span>
-                      {nombre.split(" ")[0]}
+                  <Link
+                    href="/cuenta"
+                    className="inline-flex items-center gap-2 rounded-xl px-1.5 py-1 text-stone-600 transition hover:bg-arena-200 sm:pl-2"
+                    aria-label="Mi cuenta"
+                    title="Mi cuenta"
+                  >
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-monte-100 font-semibold text-monte-800">
+                      {(nombre ?? user.email ?? "?").charAt(0).toUpperCase()}
                     </span>
-                  )}
-                  <form action={signOutAction}>
-                    <button
-                      type="submit"
-                      className="inline-flex items-center rounded-xl px-2.5 py-2 text-stone-500 transition hover:bg-arena-200 hover:text-stone-800"
-                      aria-label="Cerrar sesión"
-                      title="Cerrar sesión"
-                    >
-                      <LogoutIcon />
-                    </button>
-                  </form>
+                    {nombre && <span className="hidden md:inline">{nombre.split(" ")[0]}</span>}
+                  </Link>
                 </>
               ) : (
                 <>
@@ -98,8 +90,8 @@ export default async function CatalogLayout({ children }: { children: React.Reac
                 Política de privacidad
               </Link>
               {user && (
-                <Link href="/cuenta/eliminar" className="hover:text-white">
-                  Eliminar mi cuenta
+                <Link href="/cuenta" className="hover:text-white">
+                  Mi cuenta
                 </Link>
               )}
             </div>

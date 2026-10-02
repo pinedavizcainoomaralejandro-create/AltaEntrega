@@ -13,11 +13,20 @@ export async function ensureUserProfile(
 ) {
   const { data: existing } = await supabase
     .from("users")
-    .select("id")
+    .select("id, email")
     .eq("id", user.id)
     .maybeSingle();
 
-  if (existing) return null;
+  if (existing) {
+    // Cambió su email desde /cuenta/credenciales: el trigger sync_user_email
+    // copia el de auth.users al actualizar la fila.
+    if (user.email && existing.email !== user.email) {
+      const { error } = await supabase.from("users").update({ email: user.email }).eq("id", user.id);
+      if (error) console.error("ensureUserProfile", error);
+      return error;
+    }
+    return null;
+  }
 
   const meta = user.user_metadata as {
     nombre?: string;

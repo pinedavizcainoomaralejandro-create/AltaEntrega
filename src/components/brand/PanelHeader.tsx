@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { signOutAction } from "@/app/(auth)/actions";
 import HomeLink from "@/components/HomeLink";
 import { LogoMark } from "./Logo";
@@ -15,6 +16,9 @@ export default function PanelHeader({ etiqueta, titulo }: { etiqueta: string; ti
       </div>
       <div className="flex items-center gap-4">
         <HomeLink />
+        <Link href="/cuenta" className="btn-secondary btn-sm">
+          Mi cuenta
+        </Link>
         <form action={signOutAction}>
           <button type="submit" className="btn-secondary btn-sm">
             Cerrar sesión
