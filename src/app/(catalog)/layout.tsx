@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { CartProvider } from "@/lib/cart/CartContext";
 import CartHeaderLink from "@/components/catalog/CartHeaderLink";
 import Logo from "@/components/brand/Logo";
+import UserMenu from "@/components/UserMenu";
 import { ReceiptIcon, UserIcon } from "@/components/ui/icons";
 
 export default async function CatalogLayout({ children }: { children: React.ReactNode }) {
@@ -45,17 +46,7 @@ export default async function CatalogLayout({ children }: { children: React.Reac
                     {canBuy ? <ReceiptIcon /> : <UserIcon />}
                     <span className="hidden sm:inline">{canBuy ? "Mis pedidos" : "Mi panel"}</span>
                   </Link>
-                  <Link
-                    href="/cuenta"
-                    className="inline-flex items-center gap-2 rounded-xl px-1.5 py-1 text-stone-600 transition hover:bg-arena-200 sm:pl-2"
-                    aria-label="Mi cuenta"
-                    title="Mi cuenta"
-                  >
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-monte-100 font-semibold text-monte-800">
-                      {(nombre ?? user.email ?? "?").charAt(0).toUpperCase()}
-                    </span>
-                    {nombre && <span className="hidden md:inline">{nombre.split(" ")[0]}</span>}
-                  </Link>
+                  <UserMenu nombre={nombre} email={user.email ?? ""} rol={rol ?? "cliente"} />
                 </>
               ) : (
                 <>

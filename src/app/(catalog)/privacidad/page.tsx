@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CONTACTO_EMAIL } from "@/lib/contacto";
 
 export const metadata: Metadata = {
   title: "Política de privacidad",
   description: "Qué datos guarda AltaEntrega, para qué los usa y cómo puedes consultarlos o borrarlos.",
 };
 
-// Responsable de los datos y correo de contacto (los piden Google Play y App Store).
+// Responsable de los datos (lo piden Google Play y App Store).
 const RESPONSABLE = "Omar Alejandro Pineda Vizcaino";
-const CONTACTO = "pinedavizcainoomaralejandro@gmail.com";
 const ACTUALIZADA = "1 de octubre de 2026";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -22,8 +22,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 export default function PrivacidadPage() {
   const correo = (
-    <a href={`mailto:${CONTACTO}`} className="link">
-      {CONTACTO}
+    <a href={`mailto:${CONTACTO_EMAIL}`} className="link">
+      {CONTACTO_EMAIL}
     </a>
   );
 

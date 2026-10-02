@@ -1,10 +1,18 @@
-import Link from "next/link";
-import { signOutAction } from "@/app/(auth)/actions";
+import { createClient } from "@/lib/supabase/server";
 import HomeLink from "@/components/HomeLink";
+import UserMenu from "@/components/UserMenu";
 import { LogoMark } from "./Logo";
 
 /** Encabezado de los paneles (tienda, repartidor, admin). */
-export default function PanelHeader({ etiqueta, titulo }: { etiqueta: string; titulo: string }) {
+export default async function PanelHeader({ etiqueta, titulo }: { etiqueta: string; titulo: string }) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { data: profile } = user
+    ? await supabase.from("users").select("nombre, rol").eq("id", user.id).maybeSingle()
+    : { data: null };
+
   return (
     <header className="mb-8 flex flex-wrap items-center justify-between gap-4">
       <div className="flex items-center gap-3">
@@ -16,14 +24,7 @@ export default function PanelHeader({ etiqueta, titulo }: { etiqueta: string; ti
       </div>
       <div className="flex items-center gap-4">
         <HomeLink />
-        <Link href="/cuenta" className="btn-secondary btn-sm">
-          Mi cuenta
-        </Link>
-        <form action={signOutAction}>
-          <button type="submit" className="btn-secondary btn-sm">
-            Cerrar sesión
-          </button>
-        </form>
+        {user && <UserMenu nombre={profile?.nombre ?? null} email={user.email ?? ""} rol={profile?.rol ?? "cliente"} />}
       </div>
     </header>
   );

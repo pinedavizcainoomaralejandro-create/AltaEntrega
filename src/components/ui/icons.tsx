@@ -108,3 +108,20 @@ export function ChevronRightIcon({ className = "h-4 w-4" }: IconProps) {
     </svg>
   );
 }
+
+export function HelpIcon({ className = "h-5 w-5" }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5h.01" />
+    </svg>
+  );
+}
+
+export function ChevronDownIcon({ className = "h-4 w-4" }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
