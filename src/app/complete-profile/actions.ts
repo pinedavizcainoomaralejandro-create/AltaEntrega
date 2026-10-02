@@ -5,9 +5,17 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { friendlyDbError } from "@/lib/errors";
 import { isValidMatricula, normalizeCedula, normalizeMatricula } from "@/lib/validation";
-import { isCategoriaSlug } from "@/lib/categories";
+import { getCategoria, isCategoriaSlug } from "@/lib/categories";
+import { notifyAdminsSolicitud } from "@/lib/email";
+import type { SupabaseClient, User } from "@supabase/supabase-js";
+import type { Database } from "@/types/database";
 
 export type ProfileFormState = { error: string | null } & FormValues;
+
+async function applicantName(supabase: SupabaseClient<Database>, user: User) {
+  const { data } = await supabase.from("users").select("nombre").eq("id", user.id).maybeSingle();
+  return data?.nombre ?? user.email!;
+}
 
 async function createStoreProfileInner(
   _prevState: ProfileFormState,
@@ -54,6 +62,14 @@ async function createStoreProfileInner(
     if (error.code === "23505") return { error: "Ya registraste una tienda con esta cuenta." };
     return { error: friendlyDbError(error, "No se pudo guardar la tienda. Inténtalo de nuevo.") };
   }
+
+  await notifyAdminsSolicitud({
+    tipo: "tienda",
+    nombre: await applicantName(supabase, user),
+    email: user.email!,
+    detalle: `Negocio: ${nombre} (${getCategoria(categoria)?.nombre ?? categoria}), ${direccion}.`,
+    reenviada: existing?.estado === "rechazado",
+  });
 
   redirect("/pending-approval");
 }
@@ -118,6 +134,15 @@ async function createCourierProfileInner(
     }
     return { error: friendlyDbError(error, "No se pudo guardar tu perfil. Inténtalo de nuevo.") };
   }
+
+  // Sin la cédula: no hace falta que viaje por correo, se ve en /admin.
+  await notifyAdminsSolicitud({
+    tipo: "courier",
+    nombre: await applicantName(supabase, user),
+    email: user.email!,
+    detalle: `Vehículo: ${vehiculo}. Matrícula: ${matricula}.`,
+    reenviada: existing?.estado === "rechazado",
+  });
 
   redirect("/pending-approval");
 }

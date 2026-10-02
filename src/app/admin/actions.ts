@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { friendlyDbError } from "@/lib/errors";
 import { parseBankAccount } from "@/lib/bankAccount";
 import { attachValues } from "@/lib/formValues";
+import { notifySolicitante } from "@/lib/email";
 import type { ApprovalStatus } from "@/types/database";
 
 function parseEstado(formData: FormData): ApprovalStatus | null {
@@ -15,7 +16,20 @@ function parseEstado(formData: FormData): ApprovalStatus | null {
 
 // La RLS ya exige rol=admin para poder cambiar "estado" en stores/couriers
 // (el middleware además bloquea /admin a cualquier otro rol); estas acciones
-// solo hacen la escritura y refrescan la página.
+// hacen la escritura, avisan por correo al solicitante y refrescan la página.
+// Solo cambian solicitudes pendientes: un doble clic no manda dos correos.
+
+async function avisarSolicitante(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string | null,
+  tipo: "tienda" | "courier",
+  estado: ApprovalStatus
+) {
+  if (!userId) return;
+  const { data: user } = await supabase.from("users").select("email, nombre").eq("id", userId).maybeSingle();
+  if (!user) return;
+  await notifySolicitante({ tipo, email: user.email, nombre: user.nombre, aprobada: estado === "aprobado" });
+}
 
 export type ApprovalState = { error: string | null };
 
@@ -28,8 +42,20 @@ export async function setStoreStatusAction(
   if (!id || !estado) return { error: "Solicitud inválida." };
 
   const supabase = await createClient();
-  const { error } = await supabase.from("stores").update({ estado }).eq("id", id);
+  const { data: store, error } = await supabase
+    .from("stores")
+    .update({ estado })
+    .eq("id", id)
+    .eq("estado", "pendiente")
+    .select("user_id")
+    .maybeSingle();
   if (error) return { error: "No se pudo actualizar la tienda. Inténtalo de nuevo." };
+  if (!store) {
+    revalidatePath("/admin");
+    return { error: "Esta solicitud ya fue revisada." };
+  }
+
+  await avisarSolicitante(supabase, store.user_id, "tienda", estado);
 
   revalidatePath("/admin");
   return { error: null };
@@ -44,8 +70,20 @@ export async function setCourierStatusAction(
   if (!id || !estado) return { error: "Solicitud inválida." };
 
   const supabase = await createClient();
-  const { error } = await supabase.from("couriers").update({ estado }).eq("id", id);
+  const { data: courier, error } = await supabase
+    .from("couriers")
+    .update({ estado })
+    .eq("id", id)
+    .eq("estado", "pendiente")
+    .select("user_id")
+    .maybeSingle();
   if (error) return { error: "No se pudo actualizar al repartidor. Inténtalo de nuevo." };
+  if (!courier) {
+    revalidatePath("/admin");
+    return { error: "Esta solicitud ya fue revisada." };
+  }
+
+  await avisarSolicitante(supabase, courier.user_id, "courier", estado);
 
   revalidatePath("/admin");
   return { error: null };

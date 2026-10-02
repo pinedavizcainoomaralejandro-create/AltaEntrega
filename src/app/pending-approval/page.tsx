@@ -28,7 +28,7 @@ export default async function PendingApprovalPage() {
       subtitle={
         estado === "rechazado"
           ? "Un administrador rechazó tu solicitud. Puedes corregir tus datos y enviarlos de nuevo."
-          : "Estamos revisando tu perfil. Te avisaremos apenas sea aprobado; mientras tanto puedes ver el catálogo desde Inicio."
+          : "Estamos revisando tu perfil. Te avisaremos por correo cuando tengamos una respuesta; mientras tanto puedes ver el catálogo desde Inicio."
       }
     >
       {estado !== "rechazado" && (
