@@ -11,6 +11,8 @@ function isPublicPath(pathname: string) {
     pathname.startsWith("/auth/") ||
     // AZUL devuelve al cliente aquí; la ruta verifica la firma por su cuenta.
     pathname.startsWith("/api/pagos/") ||
+    // La llama la base de datos para enviar avisos; verifica su secreto.
+    pathname.startsWith("/api/push/") ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon")
   );

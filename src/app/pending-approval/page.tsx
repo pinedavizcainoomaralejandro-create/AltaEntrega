@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { signOutAction } from "../(auth)/actions";
+import LogoutButton from "@/components/LogoutButton";
 import AuthShell from "@/components/brand/AuthShell";
 
 export default async function PendingApprovalPage() {
@@ -48,11 +48,7 @@ export default async function PendingApprovalPage() {
           Corregir mis datos y reenviar
         </Link>
       )}
-      <form action={signOutAction}>
-        <button type="submit" className="btn-secondary">
-          Cerrar sesión
-        </button>
-      </form>
+      <LogoutButton className="btn-secondary">Cerrar sesión</LogoutButton>
       <Link href="/cuenta/eliminar" className="text-center text-sm text-stone-500 underline hover:text-red-600">
         Eliminar mi cuenta
       </Link>

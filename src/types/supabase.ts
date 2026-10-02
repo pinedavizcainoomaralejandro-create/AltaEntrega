@@ -508,6 +508,35 @@ export type Database = {
           },
         ]
       }
+      push_tokens: {
+        Row: {
+          platform: string
+          token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          platform: string
+          token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          platform?: string
+          token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_tokens_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_payout_accounts: {
         Row: {
           banco: string
@@ -800,6 +829,10 @@ export type Database = {
         Returns: Json
       }
       restore_order_stock: { Args: { p_order_id: string }; Returns: undefined }
+      register_push_token: {
+        Args: { p_platform: string; p_token: string }
+        Returns: undefined
+      }
       review_subscription_payment: {
         Args: { p_aprobar: boolean; p_motivo?: string; p_payment_id: string }
         Returns: undefined
@@ -836,6 +869,7 @@ export type Database = {
         Args: { p_courier_id: string; p_store_id: string }
         Returns: boolean
       }
+      unregister_push_token: { Args: { p_token: string }; Returns: undefined }
       update_payout: {
         Args: {
           p_error?: string

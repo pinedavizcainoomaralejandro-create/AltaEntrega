@@ -721,4 +721,89 @@ select pg_temp.expect_error(
   'users_avatar_path_own_folder');
 reset role;
 
+-- Notificaciones push
+update public.platform_settings set fase = 'azul';
+select set_config('test.uid', '', false);
+insert into auth.users (id, email) values
+  ('00000000-0000-0000-0000-0000000001b1', 'pt@x.com'),
+  ('00000000-0000-0000-0000-0000000001c1', 'pc@x.com'),
+  ('00000000-0000-0000-0000-0000000001d1', 'pd@x.com');
+insert into public.users (id, email, rol, nombre) values
+  ('00000000-0000-0000-0000-0000000001b1', 'pt@x.com', 'tienda', 'Dueña'),
+  ('00000000-0000-0000-0000-0000000001c1', 'pc@x.com', 'cliente', 'Comprador'),
+  ('00000000-0000-0000-0000-0000000001d1', 'pd@x.com', 'courier', 'Repartidor');
+insert into public.stores (id, user_id, nombre, direccion, categoria, estado) values
+  ('00000000-0000-0000-0000-0000000001a1', '00000000-0000-0000-0000-0000000001b1', 'Panadería', 'Calle 1', 'boutique', 'aprobado');
+insert into public.couriers (id, user_id, vehiculo, documento_identidad, matricula, estado, disponible) values
+  ('00000000-0000-0000-0000-0000000001e1', '00000000-0000-0000-0000-0000000001d1', 'moto', '90000000001', 'P900001', 'aprobado', true);
+
+set role authenticated;
+select pg_temp.as_user('00000000-0000-0000-0000-0000000001c1');
+select public.register_push_token('token-cliente-0000000000000000', 'android');
+select pg_temp.expect_error($$select public.register_push_token('token-malo-000000000000000000', 'windows')$$, 'push_tokens_platform_check');
+select pg_temp.expect_error($$select * from public.push_tokens$$, 'permission denied');
+select pg_temp.as_user('00000000-0000-0000-0000-0000000001b1');
+select public.register_push_token('token-tienda-00000000000000000', 'ios');
+select pg_temp.as_user('00000000-0000-0000-0000-0000000001d1');
+select public.register_push_token('token-repartidor-0000000000000', 'android');
+reset role;
+
+-- Sin configuración no se envía nada.
+insert into public.orders (id, cliente_id, store_id, direccion_entrega, subtotal, total, metodo_pago, estado, tienda_nombre, tienda_direccion)
+values ('00000000-0000-0000-0000-0000000001f1', '00000000-0000-0000-0000-0000000001c1', '00000000-0000-0000-0000-0000000001a1',
+        'Casa', 100, 100, 'tarjeta', 'esperando_pago', 'Panadería', 'Calle 1');
+do $$ begin
+  if exists (select 1 from net.test_requests) then raise exception 'Sin push_config no debe enviarse nada'; end if;
+end $$;
+
+insert into private.push_config (dispatch_url, secret)
+values ('https://app.test/api/push/send', repeat('s', 32));
+
+-- Pago confirmado: aviso al negocio, con el secreto y solo con su token.
+update public.orders set estado = 'pendiente' where id = '00000000-0000-0000-0000-0000000001f1';
+do $$ declare r net.test_requests%rowtype; begin
+  select * into strict r from net.test_requests;
+  if r.url <> 'https://app.test/api/push/send' or r.headers ->> 'x-push-secret' <> repeat('s', 32)
+     or r.body ->> 'title' <> 'Nuevo pedido'
+     or r.body -> 'tokens' <> '[{"token": "token-tienda-00000000000000000", "platform": "ios"}]'::jsonb then
+    raise exception 'Aviso de pedido nuevo incorrecto: %', row_to_json(r);
+  end if;
+end $$;
+delete from net.test_requests;
+
+-- Confirmado por el negocio (que no recibe su propio aviso): cliente y repartidor disponible.
+select pg_temp.as_user('00000000-0000-0000-0000-0000000001b1');
+update public.orders set estado = 'confirmado' where id = '00000000-0000-0000-0000-0000000001f1';
+do $$ declare v_titles text[]; v_tokens text; begin
+  select array_agg(body ->> 'title' order by body ->> 'title'), string_agg(body::text, ' ')
+  into v_titles, v_tokens from net.test_requests;
+  if v_titles <> array['Nuevo pedido para entregar', 'Pedido confirmado']
+     or v_tokens like '%token-tienda%' then
+    raise exception 'Avisos de pedido confirmado incorrectos: % %', v_titles, v_tokens;
+  end if;
+end $$;
+delete from net.test_requests;
+select pg_temp.as_user('');
+
+-- Un intento de pago que no se completó no avisa a nadie al cancelarse.
+insert into public.orders (id, cliente_id, store_id, direccion_entrega, subtotal, total, metodo_pago, estado, tienda_nombre, tienda_direccion)
+values ('00000000-0000-0000-0000-0000000001f2', '00000000-0000-0000-0000-0000000001c1', '00000000-0000-0000-0000-0000000001a1',
+        'Casa', 50, 50, 'tarjeta', 'esperando_pago', 'Panadería', 'Calle 1');
+update public.orders set estado = 'cancelado' where id = '00000000-0000-0000-0000-0000000001f2';
+do $$ begin
+  if exists (select 1 from net.test_requests) then raise exception 'Cancelar un intento de pago no debe avisar'; end if;
+end $$;
+
+-- Aprobación de una solicitud: aviso al solicitante.
+update public.couriers set estado = 'pendiente' where id = '00000000-0000-0000-0000-0000000001e1';
+update public.couriers set estado = 'aprobado' where id = '00000000-0000-0000-0000-0000000001e1';
+do $$ begin
+  if not exists (select 1 from net.test_requests where body ->> 'title' = '¡Solicitud aprobada!'
+                 and body -> 'tokens' @> '[{"token": "token-repartidor-0000000000000"}]') then
+    raise exception 'La aprobación no avisó al repartidor';
+  end if;
+end $$;
+delete from net.test_requests;
+delete from private.push_config;
+
 \echo 'OK: todas las pruebas de base de datos pasaron'

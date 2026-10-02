@@ -27,3 +27,14 @@ begin
     create role service_role;
   end if;
 end $$;
+
+-- pg_net: en vez de hacer la petición HTTP, la guarda para revisarla.
+create schema net;
+create table net.test_requests (url text, body jsonb, headers jsonb);
+create function net.http_post(
+  url text, body jsonb default '{}', params jsonb default '{}', headers jsonb default '{}',
+  timeout_milliseconds int default 5000
+) returns bigint language sql as $$
+  insert into net.test_requests values (url, body, headers);
+  select 1::bigint;
+$$;

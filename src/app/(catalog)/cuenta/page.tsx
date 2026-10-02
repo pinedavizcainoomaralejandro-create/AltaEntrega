@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { signOutAction } from "@/app/(auth)/actions";
+import LogoutButton from "@/components/LogoutButton";
 import HomeLink from "@/components/HomeLink";
 import Avatar from "@/components/Avatar";
 import { avatarUrl } from "@/lib/avatar";
@@ -122,14 +122,12 @@ export default async function CuentaPage({ searchParams }: { searchParams: Promi
 
       <ul className="card divide-y divide-stone-100 overflow-hidden">
         <li>
-          <form action={signOutAction}>
-            <button type="submit" className={`${itemClass} text-stone-800`}>
-              <span className="text-stone-500">
-                <LogoutIcon />
-              </span>
-              Cerrar sesión
-            </button>
-          </form>
+          <LogoutButton className={`${itemClass} text-stone-800`}>
+            <span className="text-stone-500">
+              <LogoutIcon />
+            </span>
+            Cerrar sesión
+          </LogoutButton>
         </li>
         <li>
           <Link href="/cuenta/eliminar" className={`${itemClass} text-red-600 hover:bg-red-50`}>

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Fraunces, Plus_Jakarta_Sans } from "next/font/google";
 import ServiceWorkerRegister from "@/components/pwa/ServiceWorkerRegister";
 import BackButtonHandler from "@/components/native/BackButtonHandler";
+import PushRegistration from "@/components/native/PushRegistration";
 import "./globals.css";
 
 // next/font descarga las fuentes al compilar y las sirve desde este mismo
@@ -37,6 +38,7 @@ export default function RootLayout({
         {children}
         <ServiceWorkerRegister />
         <BackButtonHandler />
+        <PushRegistration />
       </body>
     </html>
   );

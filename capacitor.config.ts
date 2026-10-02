@@ -15,6 +15,10 @@ const config: CapacitorConfig = {
     backgroundColor: "#faf6ef",
   },
   plugins: {
+    // Con la app abierta, los avisos también se muestran (y suenan).
+    PushNotifications: {
+      presentationOptions: ["badge", "sound", "alert"],
+    },
     // La web usa viewport-fit=cover y se aparta sola con env(safe-area-inset-*).
     SystemBars: {
       insetsHandling: "native",

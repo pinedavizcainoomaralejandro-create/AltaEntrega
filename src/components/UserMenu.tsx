@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
-import { signOutAction } from "@/app/(auth)/actions";
+import LogoutButton from "@/components/LogoutButton";
 import { CONTACTO_EMAIL } from "@/lib/contacto";
 import Avatar from "@/components/Avatar";
 import {
@@ -150,12 +150,10 @@ export default function UserMenu({
 
           <hr className="my-1.5 border-stone-100" />
 
-          <form action={signOutAction}>
-            <button type="submit" role="menuitem" className={itemClass}>
-              <LogoutIcon className="h-5 w-5 text-stone-500" />
-              Cerrar sesión
-            </button>
-          </form>
+          <LogoutButton role="menuitem" className={itemClass}>
+            <LogoutIcon className="h-5 w-5 text-stone-500" />
+            Cerrar sesión
+          </LogoutButton>
           <Link
             href="/cuenta/eliminar"
             role="menuitem"
