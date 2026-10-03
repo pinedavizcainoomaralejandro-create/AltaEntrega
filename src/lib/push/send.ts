@@ -24,6 +24,30 @@ function pem(raw: string) {
   return raw.replace(/\\n/g, "\n");
 }
 
+/** JWT firmado con la cuenta de servicio, para pedir un token de acceso a Google (RS256). */
+export function googleAssertion(clientEmail: string, privateKey: string, nowSeconds: number) {
+  const unsigned = `${base64url(JSON.stringify({ alg: "RS256", typ: "JWT" }))}.${base64url(
+    JSON.stringify({
+      iss: clientEmail,
+      scope: "https://www.googleapis.com/auth/firebase.messaging",
+      aud: "https://oauth2.googleapis.com/token",
+      iat: nowSeconds,
+      exp: nowSeconds + 3600,
+    })
+  )}`;
+  const signature = createSign("RSA-SHA256").update(unsigned).sign(pem(privateKey));
+  return `${unsigned}.${base64url(signature)}`;
+}
+
+/** Token de proveedor de APNs, firmado con la clave .p8 (ES256). */
+export function apnsProviderToken(keyId: string, teamId: string, privateKey: string, nowSeconds: number) {
+  const unsigned = `${base64url(JSON.stringify({ alg: "ES256", kid: keyId }))}.${base64url(
+    JSON.stringify({ iss: teamId, iat: nowSeconds })
+  )}`;
+  const signature = sign("sha256", Buffer.from(unsigned), { key: pem(privateKey), dsaEncoding: "ieee-p1363" });
+  return `${unsigned}.${base64url(signature)}`;
+}
+
 // ── Firebase ──────────────────────────────────────────────────
 
 let googleToken: { value: string; expires: number } | null = null;
@@ -31,24 +55,17 @@ let googleToken: { value: string; expires: number } | null = null;
 async function googleAccessToken() {
   if (googleToken && googleToken.expires > Date.now() + 60_000) return googleToken.value;
 
-  const now = Math.floor(Date.now() / 1000);
-  const unsigned = `${base64url(JSON.stringify({ alg: "RS256", typ: "JWT" }))}.${base64url(
-    JSON.stringify({
-      iss: process.env.FIREBASE_CLIENT_EMAIL,
-      scope: "https://www.googleapis.com/auth/firebase.messaging",
-      aud: "https://oauth2.googleapis.com/token",
-      iat: now,
-      exp: now + 3600,
-    })
-  )}`;
-  const signature = createSign("RSA-SHA256").update(unsigned).sign(pem(process.env.FIREBASE_PRIVATE_KEY!));
-
+  const assertion = googleAssertion(
+    process.env.FIREBASE_CLIENT_EMAIL!,
+    process.env.FIREBASE_PRIVATE_KEY!,
+    Math.floor(Date.now() / 1000)
+  );
   const res = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
       grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-      assertion: `${unsigned}.${base64url(signature)}`,
+      assertion,
     }),
     signal: AbortSignal.timeout(8000),
   });
@@ -99,15 +116,14 @@ let apnsJwt: { value: string; created: number } | null = null;
 // Apple pide renovar el token entre 20 y 60 minutos.
 function apnsToken() {
   if (apnsJwt && Date.now() - apnsJwt.created < 40 * 60_000) return apnsJwt.value;
-  const unsigned = `${base64url(JSON.stringify({ alg: "ES256", kid: process.env.APNS_KEY_ID }))}.${base64url(
-    JSON.stringify({ iss: process.env.APNS_TEAM_ID, iat: Math.floor(Date.now() / 1000) })
-  )}`;
-  const signature = sign("sha256", Buffer.from(unsigned), {
-    key: pem(process.env.APNS_PRIVATE_KEY!),
-    dsaEncoding: "ieee-p1363",
-  });
-  apnsJwt = { value: `${unsigned}.${base64url(signature)}`, created: Date.now() };
-  return apnsJwt.value;
+  const value = apnsProviderToken(
+    process.env.APNS_KEY_ID!,
+    process.env.APNS_TEAM_ID!,
+    process.env.APNS_PRIVATE_KEY!,
+    Math.floor(Date.now() / 1000)
+  );
+  apnsJwt = { value, created: Date.now() };
+  return value;
 }
 
 function apnsRequest(session: ClientHttp2Session, token: string, body: string) {
